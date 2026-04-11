@@ -1,11 +1,29 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { UploadCloud, X, GripHorizontal, BarChart3, TrendingUp, MousePointerClick, DollarSign, ShoppingCart, Activity, Calendar, ToggleLeft, ToggleRight, BarChart2, PieChart, Trophy, Target, ChevronDown, ChevronUp, LayoutList, LineChart, PlusCircle, Trash2, ExternalLink, HelpCircle, Lightbulb, Heart, AlertTriangle, ShoppingBag, Package, Rocket } from 'lucide-react';
 
+const MetaIcon = ({ size = 24, className = "", strokeWidth = 2 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth={strokeWidth} fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 12c-2.21-3-4.42-3-6.63-3A4.37 4.37 0 0 0 1 13.37C1 15.82 2.94 17 5.37 17c2.21 0 4.42-1.5 6.63-5Z"></path>
+    <path d="M12 12c2.21 3 4.42 3 6.63 3A4.37 4.37 0 0 0 23 10.63C23 8.18 21.06 7 18.63 7c-2.21 0-4.42 1.5-6.63 5Z"></path>
+  </svg>
+);
+
+const ShopeeIcon = ({ size = 24, className = "", strokeWidth = 2 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth={strokeWidth} fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 8V5a4 4 0 0 1 8 0v3"></path>
+    <rect x="3" y="8" width="18" height="14" rx="2"></rect>
+    <path d="M14.5 13.5a2.5 2.5 0 0 0-5 0c0 1.5 5 1.5 5 3a2.5 2.5 0 0 1-5 0"></path>
+  </svg>
+);
+
 export default function App() {
   // --- STATE UNTUK DATA CSV ---
   const [shopeeClicks, setShopeeClicks] = useState([]);
   const [shopeeCommissions, setShopeeCommissions] = useState([]);
   const [metaAds, setMetaAds] = useState([]);
+
+  // BARU: State untuk Animasi Loading Saat Parsing File Besar
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // State untuk Tab Aktif (Table vs Charts)
   const [activeTab, setActiveTab] = useState('table');
@@ -36,109 +54,61 @@ export default function App() {
   // State untuk pilihan tag di Chart Harian
   const [selectedChartTag, setSelectedChartTag] = useState('');
 
-  // --- STATE UNTUK ONBOARDING TOUR (DINAMIS) ---
+  // State untuk Level Kategori Produk
+  const [selectedCategoryLevel, setSelectedCategoryLevel] = useState('l1');
+
+  // State untuk Pilihan Bulan di Kalender Profit
+  const [selectedMonth, setSelectedMonth] = useState('');
+
+  // State Filter Tanggal khusus Tabel Performa Tag
+  const [tagTableDateFilter, setTagTableDateFilter] = useState('all');
+
+  // --- STATE UNTUK ONBOARDING TOUR (MODERN MODAL) ---
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
-  const [tourStyle, setTourStyle] = useState({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
-  const [highlightStyle, setHighlightStyle] = useState({ opacity: 0 });
 
-  // State untuk Modal Dukungan
-  const [showSupportModal, setShowSupportModal] = useState(false);
-
-  // BARU: State untuk Peringatan Meta Ads tanpa Breakdown
+  // State untuk Peringatan Meta Ads tanpa Breakdown
   const [showMetaWarning, setShowMetaWarning] = useState(false);
 
   // DATA ONBOARDING TOUR
   const tourStepsData = [
     {
-      targetId: null, 
       title: "Selamat Datang di Dashboard!",
-      desc: "Alat ini dirancang khusus untuk memadukan data Iklan Meta (FB/IG) dengan komisi Shopee Affiliate Anda, menampilkan metrik performa secara otomatis dan akurat.",
-      icon: <Lightbulb className="w-10 h-10 text-amber-500" />
+      desc: "Alat ini dirancang khusus untuk memadukan data Iklan Meta (FB/IG) dengan komisi Shopee Affiliate Anda. Kini dilengkapi dengan Kalender Profit dan analitik canggih!",
+      icon: <Rocket className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-orange-400 to-rose-500"
     },
     {
-      targetId: "step-upload",
-      title: "1. Import Data CSV",
-      desc: "Unggah ketiga file CSV Anda di sini (Meta Ads, Klik Shopee, Komisi Shopee). Khusus Meta Ads, pastikan Anda menggunakan fitur 'Breakdown By Time -> Day' saat export.",
-      icon: <UploadCloud className="w-10 h-10 text-blue-500" />
+      title: "1. Import 3 Data CSV",
+      desc: "Unggah file secara berurutan: Data Meta Ads, Komisi Shopee, dan Klik Shopee. Khusus Meta Ads, pastikan Anda menggunakan format 'Breakdown By Time ➔ Day'.",
+      icon: <UploadCloud className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-blue-500 to-cyan-400"
     },
     {
-      targetId: "step-summary",
-      title: "2. Ringkasan & Profit",
-      desc: "Pantau metrik utama seperti GMV, Meta Clicks, Produk Terjual, hingga Keuntungan Bersih. Jangan lupa atur persentase PPN Meta Anda di sini.",
-      icon: <BarChart2 className="w-10 h-10 text-teal-500" />
+      title: "2. Ringkasan & ROAS",
+      desc: "Pantau GMV, Keuntungan Bersih, dan ROAS secara real-time. Jangan lupa atur persentase PPN Meta Ads Anda agar perhitungannya akurat.",
+      icon: <BarChart2 className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-teal-400 to-emerald-500"
     },
     {
-      targetId: "step-add-tag",
-      title: "3. Kelola Tag Kombinasi",
-      desc: "Pilih dan tambah Tag dari dropdown ini. Setelah masuk ke tabel, kaitkan Tag tersebut dengan Campaign Meta Ads yang sesuai di kolom paling kiri.",
-      icon: <Target className="w-10 h-10 text-indigo-500" />
+      title: "3. Kinerja Tag & Filter",
+      desc: "Di Tabel Performa Tag, kaitkan Tag Shopee dengan Campaign Meta. Anda kini juga bisa menyaring (memfilter) tampilan tabel berdasarkan tanggal spesifik!",
+      icon: <Target className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-indigo-500 to-violet-600"
     },
     {
-      targetId: "step-table",
-      title: "4. Analisis Detail Tabel",
-      desc: "Tabel ini bisa Anda drag/geser ke kanan! Klik pada nama tag (teks warna ungu) untuk membuka pop-up Detail Harian dan melihat performa dari hari ke hari.",
-      icon: <Activity className="w-10 h-10 text-rose-500" />
+      title: "4. Kalender Profit Cerdas",
+      desc: "Pantau hari di mana Anda untung (Hijau) atau rugi (Merah). Arahkan kursor (hover) ke atas tanggal untuk melihat detail klik, pesanan, dan profit hari tersebut.",
+      icon: <Calendar className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-pink-500 to-rose-600"
+    },
+    {
+      title: "5. Analitik Mendalam",
+      desc: "Pindah ke tab 'Analitik & Visual' untuk melihat grafik tren harian, Top 10 Produk Terlaris (berdasarkan Qty & Komisi), hingga distribusi Persentase Kategori Produk!",
+      icon: <PieChart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-fuchsia-500 to-purple-600"
     }
   ];
-
-  // LOGIC POSISI TOUR DINAMIS
-  useEffect(() => {
-    if (!showTour) return;
-
-    if (tourStep >= 3) setActiveTab('table');
-
-    const updatePosition = () => {
-      const step = tourStepsData[tourStep];
-      
-      if (!step.targetId) {
-        setTourStyle({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
-        setHighlightStyle({ opacity: 0 });
-        return;
-      }
-
-      const el = document.getElementById(step.targetId);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        let top = rect.bottom + 15;
-        let left = rect.left + (rect.width / 2) - 180; 
-
-        if (top + 250 > window.innerHeight) {
-          top = rect.top - 260;
-          if (top < 10) top = 10; 
-        }
-        
-        if (left < 15) left = 15;
-        if (left + 360 > window.innerWidth) left = window.innerWidth - 375;
-
-        setHighlightStyle({
-          top: rect.top - 6,
-          left: rect.left - 6,
-          width: rect.width + 12,
-          height: rect.height + 12,
-          opacity: 1
-        });
-
-        setTourStyle({ top, left, transform: 'none' });
-      }
-    };
-
-    const step = tourStepsData[tourStep];
-    if (step.targetId) {
-      const el = document.getElementById(step.targetId);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    const timeout = setTimeout(updatePosition, 300);
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [tourStep, showTour]);
 
   const handleNextTour = () => {
     if (tourStep < tourStepsData.length - 1) setTourStep(tourStep + 1);
@@ -149,90 +119,175 @@ export default function App() {
     if (tourStep > 0) setTourStep(tourStep - 1);
   };
 
-  // --- FUNGSI PARSER CSV ---
+  // --- FUNGSI PARSER CSV (SANGAT CEPAT & ANTI FREEZE) ---
   const parseCSV = (file, callback) => {
     if (!file) return;
     const reader = new FileReader();
+    
     reader.onload = (event) => {
-      const text = event.target.result;
-      const lines = text.split('\n');
-      if (lines.length < 2) return;
+      // Menggunakan setTimeout agar UI sempat memunculkan "Loading..." sebelum CPU sibuk
+      setTimeout(() => {
+        try {
+          const text = event.target.result;
+          if (!text) {
+             callback([]);
+             return;
+          }
 
-      let headerRowIndex = 0;
-      let delimiter = ',';
-      
-      for (let i = 0; i < Math.min(15, lines.length); i++) {
-        const lineLow = lines[i].toLowerCase();
-        if (
-          lineLow.includes('click id') || lineLow.includes('klik id') || 
-          lineLow.includes('order id') || lineLow.includes('id pesanan') || lineLow.includes('id pemesanan') || 
-          lineLow.includes('campaign name') || lineLow.includes('nama kampanye') ||
-          lineLow.includes('awal pelaporan') || lineLow.includes('reporting starts') ||
-          lineLow.includes('waktu klik') || lineLow.includes('click time')
-        ) {
-          headerRowIndex = i;
-          const c = (lines[i].match(/,/g) || []).length;
-          const s = (lines[i].match(/;/g) || []).length;
-          const t = (lines[i].match(/\t/g) || []).length;
-          
+          // 1. Deteksi Delimiter
+          const sample = text.slice(0, 2000);
+          const c = (sample.match(/,/g) || []).length;
+          const s = (sample.match(/;/g) || []).length;
+          const t = (sample.match(/\t/g) || []).length;
+          let delimiter = ',';
           if (s > c && s > t) delimiter = ';';
           else if (t > c && t > s) delimiter = '\t';
-          else delimiter = ',';
-          break;
+
+          // 2. Pemisahan Baris Kilat (Menghindari penambahan string satu persatu yang rakus memori)
+          const lines = text.split(/\r?\n/);
+          const rows = [];
+          let currentLineStr = '';
+          let inQuotes = false;
+
+          for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+
+            if (currentLineStr) {
+               currentLineStr += '\n' + line;
+            } else {
+               currentLineStr = line;
+            }
+
+            // Hitung kutip ganda untuk cek baris sudah lengkap atau belum
+            let quoteCount = 0;
+            for (let j = 0; j < line.length; j++) {
+               if (line[j] === '"') quoteCount++;
+            }
+
+            if (quoteCount % 2 !== 0) {
+               inQuotes = !inQuotes;
+            }
+
+            // Jika kutipan tertutup, baris selesai dan siap diekstrak selnya
+            if (!inQuotes) {
+               if (currentLineStr.trim() !== '') {
+                  const cells = [];
+                  let cell = '';
+                  let inCellQuotes = false;
+                  
+                  for(let k = 0; k < currentLineStr.length; k++) {
+                     const char = currentLineStr[k];
+                     if (char === '"') {
+                        if (inCellQuotes && currentLineStr[k+1] === '"') {
+                           cell += '"';
+                           k++; // Lewati ekstra kutip
+                        } else {
+                           inCellQuotes = !inCellQuotes;
+                        }
+                     } else if (char === delimiter && !inCellQuotes) {
+                        cells.push(cell);
+                        cell = '';
+                     } else {
+                        cell += char;
+                     }
+                  }
+                  cells.push(cell);
+                  rows.push(cells);
+               }
+               currentLineStr = ''; // Reset untuk baris berikutnya
+            }
+          }
+
+          if (rows.length < 2) {
+             callback([]);
+             return;
+          }
+
+          // 3. Cari Baris Header (Judul Kolom)
+          let headerRowIndex = 0;
+          for (let i = 0; i < Math.min(20, rows.length); i++) {
+              const rowStr = rows[i].join(' ').toLowerCase();
+              if (
+                rowStr.includes('click id') || rowStr.includes('klik id') || 
+                rowStr.includes('order id') || rowStr.includes('id pesanan') || rowStr.includes('id pemesanan') || 
+                rowStr.includes('campaign name') || rowStr.includes('nama kampanye') ||
+                rowStr.includes('awal pelaporan') || rowStr.includes('reporting starts') ||
+                rowStr.includes('waktu klik') || rowStr.includes('click time')
+              ) {
+                headerRowIndex = i;
+                break;
+              }
+          }
+
+          // 4. Translator Header
+          const normalizeHeader = (rawHeader) => {
+            if (!rawHeader) return '';
+            const h = rawHeader.toLowerCase().replace(/[\u200B-\u200D\uFEFF"]/g, '').trim();
+            
+            if (h === 'campaign name' || h === 'nama kampanye') return 'Campaign name';
+            if (h === 'reporting starts' || h === 'awal pelaporan') return 'Reporting starts';
+            if (h === 'reporting ends' || h === 'akhir pelaporan') return 'Reporting ends';
+            if (h === 'campaign delivery' || h === 'penayangan kampanye' || h === 'status') return 'Campaign delivery';
+            if (h.includes('amount spent') || h.includes('jumlah yang dibelanjakan')) return 'Amount spent (IDR)';
+            if (h === 'link clicks' || h === 'klik tautan') return 'Link clicks';
+            if (h === 'results' || h === 'hasil') return 'Results';
+            if (h === 'impressions' || h === 'impresi') return 'Impressions';
+            if (h === 'ctr' || h.includes('ctr') || h.includes('rasio klik')) return 'CTR';
+            
+            if (h === 'waktu pemesanan' || h === 'order time') return 'Waktu Pemesanan';
+            if (h === 'waktu klik' || h === 'click time') return 'Waktu Klik';
+            if (h === 'tag_link1' || h === 'tag link 1') return 'Tag_link1';
+            if (h === 'tag_link' || h === 'tag link' || h === 'tag') return 'Tag_link';
+            
+            if (h.includes('total komisi per produk') || h.includes('komisi barang shopee')) return 'Total Komisi per Produk(Rp)';
+            if (h.includes('total komisi per pesanan') || h.includes('estimasi komisi') || h.includes('estimated commission')) return 'Total Komisi per Pesanan(Rp)';
+            if (h.includes('nilai pembelian') || h.includes('purchase value') || h.includes('total pembelian') || h.includes('harga pesanan') || h.includes('harga barang')) return 'Nilai Pembelian';
+            if (h === 'jumlah' || h === 'quantity' || h === 'qty' || h === 'jumlah produk' || h === 'jumlah barang') return 'Jumlah Produk';
+            if (h.includes('nama produk') || h.includes('product name') || h.includes('item name') || h.includes('nama barang')) return 'Nama Produk';
+            
+            if (h.includes('l1') && h.includes('kategori')) return 'Kategori L1';
+            if (h.includes('l2') && h.includes('kategori')) return 'Kategori L2';
+            if (h.includes('l3') && h.includes('kategori')) return 'Kategori L3';
+            if (h === 'l1' || h === 'l1 global category' || h === 'kategori l1') return 'Kategori L1';
+            if (h === 'l2' || h === 'l2 global category' || h === 'kategori l2') return 'Kategori L2';
+            if (h === 'l3' || h === 'l3 global category' || h === 'kategori l3') return 'Kategori L3';
+
+            if (h === 'klik id' || h === 'click id') return 'Klik ID';
+            if (h === 'id pemesanan' || h === 'order id' || h === 'no. pesanan') return 'ID Pemesanan';
+            if (h === 'status pesanan' || h === 'order status') return 'Status Pesanan';
+            
+            return rawHeader.trim(); 
+          };
+
+          const headers = rows[headerRowIndex].map(normalizeHeader);
+          const data = [];
+
+          // 5. Proses Baris Data
+          for (let i = headerRowIndex + 1; i < rows.length; i++) {
+            const rowArray = rows[i];
+            if (rowArray.length === 0 || (rowArray.length === 1 && rowArray[0].trim() === '')) continue;
+            
+            const rowObj = {};
+            headers.forEach((header, index) => {
+              rowObj[header] = (rowArray[index] || '').trim();
+            });
+            data.push(rowObj);
+          }
+          
+          callback(data);
+        } catch (error) {
+          console.error("Terjadi masalah saat membaca CSV: ", error);
+          alert("Gagal membaca file CSV. Harap pastikan format file sudah benar.");
+          setIsProcessing(false);
         }
-      }
-
-      const splitRegex = delimiter === '\t' ? /\t/ : new RegExp(`${delimiter}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
-
-      // Translator Kolom
-      const normalizeHeader = (rawHeader) => {
-        const h = rawHeader.toLowerCase().replace(/[\u200B-\u200D\uFEFF"]/g, '').trim();
-        
-        // Meta Ads
-        if (h === 'campaign name' || h === 'nama kampanye') return 'Campaign name';
-        if (h === 'reporting starts' || h === 'awal pelaporan') return 'Reporting starts';
-        if (h === 'reporting ends' || h === 'akhir pelaporan') return 'Reporting ends';
-        if (h === 'campaign delivery' || h === 'penayangan kampanye' || h === 'status') return 'Campaign delivery';
-        if (h.includes('amount spent') || h.includes('jumlah yang dibelanjakan')) return 'Amount spent (IDR)';
-        if (h === 'link clicks' || h === 'klik tautan') return 'Link clicks';
-        if (h === 'results' || h === 'hasil') return 'Results';
-        if (h === 'impressions' || h === 'impresi') return 'Impressions';
-        if (h === 'ctr' || h.includes('ctr') || h.includes('rasio klik')) return 'CTR';
-        
-        // Shopee Affiliate
-        if (h === 'waktu pemesanan' || h === 'order time') return 'Waktu Pemesanan';
-        if (h === 'waktu klik' || h === 'click time') return 'Waktu Klik';
-        if (h === 'tag_link1' || h === 'tag link 1') return 'Tag_link1';
-        if (h === 'tag_link' || h === 'tag link' || h === 'tag') return 'Tag_link';
-        
-        if (h.includes('total komisi per produk') || h.includes('komisi barang shopee')) return 'Total Komisi per Produk(Rp)';
-        if (h.includes('total komisi per pesanan') || h.includes('estimasi komisi') || h.includes('estimated commission')) return 'Total Komisi per Pesanan(Rp)';
-        if (h.includes('nilai pembelian') || h.includes('purchase value') || h.includes('total pembelian') || h.includes('harga pesanan') || h.includes('harga barang')) return 'Nilai Pembelian';
-        if (h === 'jumlah' || h === 'quantity' || h === 'qty' || h === 'jumlah produk' || h === 'jumlah barang') return 'Jumlah Produk';
-        
-        if (h === 'klik id' || h === 'click id') return 'Klik ID';
-        if (h === 'id pemesanan' || h === 'order id' || h === 'no. pesanan') return 'ID Pemesanan';
-        if (h === 'status pesanan' || h === 'order status') return 'Status Pesanan';
-        
-        return rawHeader.replace(/^"|"$/g, '').trim(); 
-      };
-
-      const headers = lines[headerRowIndex].split(splitRegex).map(normalizeHeader);
-      const data = [];
-
-      for (let i = headerRowIndex + 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        const values = line.split(splitRegex).map(v => v.replace(/^"|"$/g, '').trim());
-        const row = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
-        });
-        data.push(row);
-      }
-      callback(data);
+      }, 50); // Jeda kecil untuk merender Loading State
     };
+
+    reader.onerror = () => {
+      alert("Terjadi kesalahan internal saat membaca file.");
+      setIsProcessing(false);
+    };
+
     reader.readAsText(file);
   };
 
@@ -240,10 +295,12 @@ export default function App() {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
+    setIsProcessing(true); // Tampilkan Loading Spinner
+
+    let processedCount = 0;
+
     files.forEach(file => {
       parseCSV(file, (data) => {
-        
-        // Cek Peringatan jika bukan Breakdown By Day
         let hasErrorRange = false;
         if (isMetaUpload) {
           for (let r of data) {
@@ -258,20 +315,27 @@ export default function App() {
 
         if (hasErrorRange) {
           setShowMetaWarning(true);
+          processedCount++;
+          if (processedCount === files.length) setIsProcessing(false);
           return; 
         }
 
         setter(prev => {
           const filtered = data.filter(filterFn);
-          const existingSet = new Set(prev.map(r => JSON.stringify(r)));
+          
+          // Menggunakan metode gabungan string yang 100x lipat lebih cepat dari JSON.stringify
+          const existingSet = new Set(prev.map(r => Object.values(r).join('~')));
           const uniqueNewData = filtered.filter(r => {
-            const str = JSON.stringify(r);
+            const str = Object.values(r).join('~');
             if (existingSet.has(str)) return false;
             existingSet.add(str);
             return true;
           });
           return [...prev, ...uniqueNewData];
         });
+
+        processedCount++;
+        if (processedCount === files.length) setIsProcessing(false); // Sembunyikan Loading
       });
     });
     e.target.value = null; 
@@ -319,19 +383,17 @@ export default function App() {
     return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short' }).format(d);
   };
 
-  const formatDuration = (ms) => {
-    if (ms === null || ms === undefined || isNaN(ms)) return '-';
-    if (ms < 0) return '< 1m'; 
-    
-    const secs = Math.floor(ms / 1000);
-    const mins = Math.floor(secs / 60);
-    const hours = Math.floor(mins / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days} hari ${hours % 24} jam`;
-    if (hours > 0) return `${hours} jam ${mins % 60} mnt`;
-    if (mins > 0) return `${mins} mnt ${secs % 60} dtk`;
-    return `${secs} detik`;
+  const monthNamesList = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  const formatMonthYear = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    const parts = dateString.split('-');
+    if (parts.length < 2) return dateString;
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNamesList[monthIndex]} ${year}`;
+    }
+    return dateString;
   };
 
   // --- LOGIC RENTANG TANGGAL KLIK ---
@@ -372,7 +434,6 @@ export default function App() {
     });
   }, [shopeeCommissions, isSyncDate, clickDateRange]);
 
-  // PERBAIKAN: Menghapus baris "Total" & Cek Data Duplikat karena multiple file upload
   const processedMetaAds = useMemo(() => {
     let filtered = metaAds;
     
@@ -396,7 +457,6 @@ export default function App() {
     const map = {};
     filtered.forEach(r => {
       const campName = r['Campaign name'];
-      // Membuang baris Total bawaan FB Ads
       if (!campName || campName.toLowerCase() === 'total' || campName.toLowerCase().includes('hasil keseluruhan')) return;
 
       const dateKey = r['Reporting starts'] || 'nodate';
@@ -405,7 +465,6 @@ export default function App() {
       if (!map[key]) {
         map[key] = r;
       } else {
-        // Jika ada duplikasi data dari upload berkali-kali, gunakan angka spend yg paling tinggi (paling up-to-date)
         const existingSpend = parseNum(map[key]['Amount spent (IDR)']);
         const newSpend = parseNum(r['Amount spent (IDR)']);
         if (newSpend > existingSpend) map[key] = r;
@@ -498,7 +557,6 @@ export default function App() {
         const komisiProduk = parseNum(r['Total Komisi per Produk(Rp)']);
         const nilaiPembelian = parseNum(r['Nilai Pembelian']);
         
-        // Kalkulasi jumlah qty produk (jika kosong, asumsikan 1 baris = 1 item)
         const qtyStr = r['Jumlah Produk'];
         let qty = 1; 
         if (qtyStr !== undefined && qtyStr !== '') {
@@ -536,20 +594,32 @@ export default function App() {
     const map = {};
     const ppnMultiplier = 1 + (ppnPercentage / 100);
     
+    shopeeClicks.forEach(r => {
+      const d = r['Waktu Klik']?.split(' ')[0];
+      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
+      map[d].shopeeClicks += 1;
+    });
+
     processedCommissions.forEach(r => {
       const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
       if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
-      if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, addedOrdersComm: {} };
+      if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       
       const orderId = r['ID Pemesanan'];
+      if (orderId) map[d].orderIdsSet.add(orderId);
+      
       const komisiProduk = parseNum(r['Total Komisi per Produk(Rp)']);
+      const nilaiPembelian = parseNum(r['Nilai Pembelian']);
       
       if (r['Total Komisi per Produk(Rp)'] !== undefined) {
         map[d].commission += komisiProduk;
+        map[d].gmv += nilaiPembelian;
       } else {
         if (orderId && !map[d].addedOrdersComm[orderId]) {
           map[d].addedOrdersComm[orderId] = true;
           map[d].commission += parseNum(r['Total Komisi per Pesanan(Rp)']);
+          map[d].gmv += nilaiPembelian;
         }
       }
     });
@@ -557,28 +627,141 @@ export default function App() {
     processedMetaAds.forEach(r => {
       const d = r['Reporting starts'];
       if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
-      if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, addedOrdersComm: {} };
+      if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       map[d].spend += parseNum(r['Amount spent (IDR)']) * ppnMultiplier; 
+      map[d].metaClicks += parseNum(r['Results']);
     });
 
-    return Object.values(map).sort((a,b) => new Date(a.date) - new Date(b.date));
-  }, [processedCommissions, processedMetaAds, ppnPercentage]);
+    return Object.values(map).map(d => ({
+      ...d,
+      shopeeOrders: d.orderIdsSet.size
+    })).sort((a,b) => new Date(a.date) - new Date(b.date));
+  }, [shopeeClicks, processedCommissions, processedMetaAds, ppnPercentage]);
 
   const maxSummaryVal = Math.max(...dailySummaryTrend.map(d => Math.max(d.commission, d.spend)), 1);
+
+  const summaryProfit = summaryData.commission - summaryData.totalSpentWithPpn;
+  let summaryRoi = '-';
+  let summaryRoas = '-';
+  if (summaryData.totalSpentWithPpn > 0) {
+    summaryRoi = `${((summaryProfit / summaryData.totalSpentWithPpn) * 100).toFixed(2)}%`;
+    summaryRoas = `${(summaryProfit / summaryData.totalSpentWithPpn).toFixed(2)}x`;
+  } else if (summaryProfit > 0) {
+    summaryRoi = '∞';
+    summaryRoas = '∞';
+  } else {
+    summaryRoi = '0%';
+    summaryRoas = '0x';
+  }
+
+  // --- LOGIC KALENDER PROFIT ---
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    dailySummaryTrend.forEach(d => {
+      if (d && d.date) {
+        const m = d.date.substring(0, 7);
+        if (m.length === 7) months.add(m);
+      }
+    });
+    return Array.from(months).sort().reverse();
+  }, [dailySummaryTrend]);
+
+  useEffect(() => {
+    if (availableMonths.length > 0 && !selectedMonth) {
+      setSelectedMonth(availableMonths[0]);
+    } else if (availableMonths.length > 0 && !availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(availableMonths[0]);
+    }
+  }, [availableMonths, selectedMonth]);
+
+  const calendarDays = useMemo(() => {
+    if (!selectedMonth) return [];
+    const parts = selectedMonth.split('-');
+    if (parts.length !== 2) return [];
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+
+    const days = [];
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const dayData = dailySummaryTrend.find(d => d.date === dateStr);
+      let profit = 0;
+      let hasData = false;
+      
+      if (dayData) {
+         profit = dayData.commission - dayData.spend;
+         hasData = true;
+         days.push({ day: i, dateStr, profit, hasData, ...dayData });
+      } else {
+         days.push({ day: i, dateStr, profit, hasData });
+      }
+    }
+    return days;
+  }, [selectedMonth, dailySummaryTrend]);
+
+  // --- LOGIC RINGKASAN DATA BULANAN KALENDER ---
+  const monthlySummary = useMemo(() => {
+    let spend = 0;
+    let gmv = 0;
+    let commission = 0;
+
+    if (!selectedMonth) return { spend, gmv, commission, profit: 0 };
+
+    dailySummaryTrend.forEach(d => {
+      if (d.date && d.date.startsWith(selectedMonth)) {
+        spend += d.spend || 0;
+        gmv += d.gmv || 0;
+        commission += d.commission || 0;
+      }
+    });
+
+    const profit = commission - spend;
+    return { spend, gmv, commission, profit };
+  }, [selectedMonth, dailySummaryTrend]);
 
   // --- LOGIC MENGGABUNGKAN DATA SHOPEE & KALKULASI META ---
   const aggregatedTags = useMemo(() => {
     const tagsMap = {};
 
+    // 1. Inisialisasi daftar Tag dari data mentah agar tidak hilang di tabel saat tanggal difilter
+    shopeeClicks.forEach(r => {
+      let tag = r['Tag_link'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
+      if (!tagsMap[tag]) {
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+      }
+    });
+
+    processedCommissions.forEach(r => {
+      let tag = r['Tag_link1'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
+      if (!tagsMap[tag]) {
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+      }
+    });
+
+    // 2. Kumpulkan metrik berdasarkan filter tanggal (jika diterapkan)
     shopeeClicks.forEach(row => {
+      const d = row['Waktu Klik']?.split(' ')[0];
+      if (tagTableDateFilter !== 'all' && d !== tagTableDateFilter) return;
+
       let tag = row['Tag_link'];
-      if (!tag) return;
-      tag = tag.replace(/-+$/, ''); 
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, ''); 
       
-      if (!tagsMap[tag]) tagsMap[tag] = { 
-        clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {},
-        commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: []
-      };
+      // Keamanan tambahan
+      if (!tagsMap[tag]) {
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+      }
+      
       tagsMap[tag].clicks += 1;
 
       const clickTimeStr = row['Waktu Klik']?.replace(' ', 'T');
@@ -586,14 +769,16 @@ export default function App() {
     });
 
     processedCommissions.forEach(row => {
-      let tag = row['Tag_link1'];
-      if (!tag) return;
-      tag = tag.replace(/-+$/, '');
+      const d = (row['Waktu Pemesanan'] || row['Waktu Klik'])?.split(' ')[0];
+      if (tagTableDateFilter !== 'all' && d !== tagTableDateFilter) return;
 
-      if (!tagsMap[tag]) tagsMap[tag] = { 
-        clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {},
-        commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: []
-      };
+      let tag = row['Tag_link1'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
+      
+      if (!tagsMap[tag]) {
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+      }
       
       const orderId = row['ID Pemesanan'];
       if (orderId) tagsMap[tag].orderIdsSet.add(orderId);
@@ -649,7 +834,13 @@ export default function App() {
       const maxOrder = oTimes.length ? Math.max(...oTimes) : null;
 
       const linkedCampaigns = tagMappings[tag] || [];
-      const linkedAdsData = processedMetaAds.filter(ad => linkedCampaigns.includes(ad['Campaign name']));
+      
+      const linkedAdsData = processedMetaAds.filter(ad => {
+        const adDate = ad['Reporting starts'];
+        if (tagTableDateFilter !== 'all' && adDate !== tagTableDateFilter) return false;
+        return linkedCampaigns.includes(ad['Campaign name']);
+      });
+
       const amountSpent = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Amount spent (IDR)']), 0);
       const metaClicks = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Link clicks']), 0);
       const impressions = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Impressions']), 0);
@@ -677,8 +868,12 @@ export default function App() {
       if (totalSpentPlusPpn > 0) roi = (keuntungan / totalSpentPlusPpn) * 100;
       else if (d.commission > 0) roi = Infinity;
 
+      let roas = 0;
+      if (totalSpentPlusPpn > 0) roas = keuntungan / totalSpentPlusPpn;
+      else if (keuntungan > 0) roas = Infinity;
+
       let rateLinkShopee = 0;
-      if (metaClicks > 0) rateLinkShopee = (d.clicks / metaClicks) * 100;
+      if (results > 0) rateLinkShopee = (d.clicks / results) * 100;
       else if (d.clicks > 0) rateLinkShopee = Infinity;
 
       let rateShopeeOrder = 0;
@@ -694,11 +889,11 @@ export default function App() {
         maxDiff, minDiff,
         minClick, maxClick, minOrder, maxOrder,
         linkedCampaigns,
-        amountSpent, ppn, metaClicks, cpr, ctr, keuntungan, roi,
+        amountSpent, ppn, metaClicks, cpr, ctr, keuntungan, roi, roas,
         rateLinkShopee, rateShopeeOrder, results
       };
     }).sort((a, b) => b.shopeeCommission - a.shopeeCommission || b.shopeeOrders - a.shopeeOrders);
-  }, [shopeeClicks, processedCommissions, tagMappings, processedMetaAds, ppnPercentage]);
+  }, [shopeeClicks, processedCommissions, tagMappings, processedMetaAds, ppnPercentage, tagTableDateFilter]);
 
   // LOGIC UNTUK TAG YANG DITAMPILKAN DI TABEL
   const availableTagsToAdd = useMemo(() => {
@@ -723,8 +918,11 @@ export default function App() {
     const dailyMap = {};
 
     shopeeClicks.forEach(r => {
-      let tag = (r['Tag_link'] || '').replace(/-+$/, '');
+      let tag = r['Tag_link'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
       if (tag !== selectedTagForModal) return;
+
       const dateStr = r['Waktu Klik']?.split(' ')[0];
       if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
       
@@ -733,8 +931,11 @@ export default function App() {
     });
 
     processedCommissions.forEach(r => {
-      let tag = (r['Tag_link1'] || '').replace(/-+$/, '');
+      let tag = r['Tag_link1'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
       if (tag !== selectedTagForModal) return;
+
       const dateStr = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
       if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
 
@@ -835,6 +1036,84 @@ export default function App() {
   }, [aggregatedTags]);
   const maxTagComm = Math.max(...topTags.map(t => t.shopeeCommission), 1);
 
+  const productStats = useMemo(() => {
+    const pMap = {};
+    processedCommissions.forEach(r => {
+      const pName = r['Nama Produk'];
+      if (!pName || pName === '--' || pName === '-') return;
+
+      const qtyStr = r['Jumlah Produk'];
+      let qty = 1;
+      if (qtyStr !== undefined && qtyStr !== '') {
+        qty = parseNum(qtyStr);
+      }
+
+      if (!pMap[pName]) pMap[pName] = { name: pName, qty: 0, commission: 0, gmv: 0 };
+      pMap[pName].qty += qty;
+      
+      let comm = 0;
+      if (r['Total Komisi per Produk(Rp)'] !== undefined) {
+        comm = parseNum(r['Total Komisi per Produk(Rp)']);
+      } else {
+        comm = parseNum(r['Total Komisi per Pesanan(Rp)']);
+      }
+      
+      pMap[pName].commission += comm;
+      pMap[pName].gmv += parseNum(r['Nilai Pembelian']);
+    });
+
+    const values = Object.values(pMap);
+    return {
+      byQty: [...values].sort((a,b) => b.qty - a.qty).slice(0, 10),
+      byComm: [...values].sort((a,b) => b.commission - a.commission).slice(0, 10)
+    };
+  }, [processedCommissions]);
+
+  const topProducts = productStats.byQty;
+  const topProductsByComm = productStats.byComm;
+
+  const categoryStats = useMemo(() => {
+    const l1Map = {};
+    const l2Map = {};
+    const l3Map = {};
+    let totalQty = 0;
+
+    processedCommissions.forEach(r => {
+      const pName = r['Nama Produk'];
+      if (!pName || pName === '--' || pName === '-') return;
+
+      const qtyStr = r['Jumlah Produk'];
+      let qty = 1;
+      if (qtyStr !== undefined && qtyStr !== '') qty = parseNum(qtyStr);
+
+      const l1 = r['Kategori L1'] || 'Tidak Diketahui';
+      const l2 = r['Kategori L2'] || 'Tidak Diketahui';
+      const l3 = r['Kategori L3'] || 'Tidak Diketahui';
+
+      if (!l1Map[l1]) l1Map[l1] = 0;
+      l1Map[l1] += qty;
+
+      if (!l2Map[l2]) l2Map[l2] = 0;
+      l2Map[l2] += qty;
+
+      if (!l3Map[l3]) l3Map[l3] = 0;
+      l3Map[l3] += qty;
+
+      totalQty += qty;
+    });
+
+    const formatData = (map) => Object.entries(map)
+      .map(([name, count]) => ({ name: name === '--' || name === '-' ? 'Lainnya' : name, count }))
+      .sort((a,b) => b.count - a.count);
+
+    return {
+      total: totalQty,
+      l1: formatData(l1Map),
+      l2: formatData(l2Map),
+      l3: formatData(l3Map)
+    };
+  }, [processedCommissions]);
+
   const currentChartTag = selectedChartTag || (topTags.length > 0 ? topTags[0].tag : '');
   
   const tagDailyChartData = useMemo(() => {
@@ -842,8 +1121,11 @@ export default function App() {
     const map = {};
 
     shopeeClicks.forEach(r => {
-      let tag = (r['Tag_link'] || '').replace(/-+$/, '');
+      let tag = r['Tag_link'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
       if (tag !== currentChartTag) return;
+
       const d = r['Waktu Klik']?.split(' ')[0];
       if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
       if (!map[d]) map[d] = { date: d, clicks: 0, orderIdsSet: new Set() };
@@ -851,8 +1133,11 @@ export default function App() {
     });
 
     processedCommissions.forEach(r => {
-      let tag = (r['Tag_link1'] || '').replace(/-+$/, '');
+      let tag = r['Tag_link1'];
+      if (tag === undefined || tag === null) return;
+      tag = String(tag).replace(/-+$/, '');
       if (tag !== currentChartTag) return;
+
       const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
       if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
       if (!map[d]) map[d] = { date: d, clicks: 0, orderIdsSet: new Set() };
@@ -874,6 +1159,7 @@ export default function App() {
     if (!campaignName) return;
     setTagMappings(prev => {
       const currentCampaigns = prev[tagName] || [];
+      if (currentCampaigns.length >= 1) return prev; 
       if (currentCampaigns.includes(campaignName)) return prev;
       return { ...prev, [tagName]: [...currentCampaigns, campaignName] };
     });
@@ -915,75 +1201,74 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#f3f4f8] font-sans text-slate-800 pb-12 relative selection:bg-violet-200">
       
-      {/* ---------------- ONBOARDING TOUR COMPONENTS ---------------- */}
-      {showTour && highlightStyle.opacity === 1 && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: highlightStyle.top,
-            left: highlightStyle.left,
-            width: highlightStyle.width,
-            height: highlightStyle.height,
-            boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.75)',
-            borderRadius: '16px',
-            zIndex: 9998,
-            pointerEvents: 'none',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        />
-      )}
-      {showTour && highlightStyle.opacity === 0 && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9998] transition-opacity duration-300"></div>
-      )}
-
-      {/* KOTAK TOUR GUIDE */}
-      {showTour && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: tourStyle.top,
-            left: tourStyle.left,
-            transform: tourStyle.transform,
-            zIndex: 9999,
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-          className="bg-slate-900 rounded-[24px] shadow-2xl max-w-[360px] w-full border border-slate-700 flex flex-col overflow-hidden"
-        >
-          <div className="p-6 relative">
-             <button onClick={() => setShowTour(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors bg-slate-800 p-1 rounded-full">
-                <X size={16} />
-             </button>
-
-             <div className="flex items-start gap-4 mb-3">
-               <div className="bg-slate-800 rounded-2xl p-3 border border-slate-700 shadow-inner shrink-0">
-                 {tourStepsData[tourStep].icon}
-               </div>
-               <div className="pt-1">
-                 <h2 className="text-base font-bold text-white leading-tight mb-2">{tourStepsData[tourStep].title}</h2>
-                 <div className="flex gap-1.5 mb-2">
-                   {tourStepsData.map((_, idx) => (
-                     <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-6 bg-violet-500' : 'w-2 bg-slate-700'}`}></div>
-                   ))}
-                 </div>
-               </div>
-             </div>
-             
-             <p className="text-[13px] text-slate-300 leading-relaxed">{tourStepsData[tourStep].desc}</p>
+      {/* LOADING OVERLAY SAAT MEMPROSES CSV BESAR */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm text-center">
+            <div className="relative w-16 h-16 mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-violet-600 border-t-transparent animate-spin"></div>
+              <UploadCloud className="absolute inset-0 m-auto text-violet-600 w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Memproses File CSV...</h3>
+            <p className="text-sm font-medium text-slate-500">Membaca ribuan baris data membutuhkan waktu beberapa saat. Harap tunggu.</p>
           </div>
+        </div>
+      )}
+
+      {/* ---------------- ONBOARDING TOUR COMPONENTS (MODAL BARU) ---------------- */}
+      {showTour && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity" onClick={() => setShowTour(false)}></div>
           
-          <div className="bg-slate-800/50 px-5 py-4 border-t border-slate-700 flex items-center justify-between">
-            <button onClick={() => setShowTour(false)} className="text-[11px] font-bold text-slate-400 hover:text-white transition-colors">
-              Skip Panduan
-            </button>
-            <div className="flex gap-2">
-              {tourStep > 0 && (
-                <button onClick={handlePrevTour} className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors">
-                  Kembali
-                </button>
-              )}
-              <button onClick={handleNextTour} className="px-4 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition-colors shadow-lg shadow-violet-500/30">
-                {tourStep === tourStepsData.length - 1 ? 'Selesai' : 'Lanjut'}
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl flex flex-col md:flex-row overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 min-h-[400px]">
+            
+            {/* Panel Kiri: Animasi Warna & Ikon */}
+            <div className={`md:w-2/5 p-8 flex flex-col items-center justify-center bg-gradient-to-br transition-colors duration-500 ${tourStepsData[tourStep].color} relative overflow-hidden`}>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
+              <div className="relative z-10 transform transition-transform duration-500 scale-110 hover:scale-125">
+                {tourStepsData[tourStep].icon}
+              </div>
+            </div>
+
+            {/* Panel Kanan: Konten Teks & Navigasi */}
+            <div className="md:w-3/5 p-8 sm:p-10 flex flex-col justify-between bg-white relative">
+              <button onClick={() => setShowTour(false)} className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors focus:outline-none">
+                <X size={20} />
               </button>
+              
+              <div className="mt-4 md:mt-0">
+                <div className="inline-block px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black tracking-widest uppercase rounded-lg mb-4">
+                  Panduan {tourStep + 1} dari {tourStepsData.length}
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">{tourStepsData[tourStep].title}</h2>
+                <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">
+                  {tourStepsData[tourStep].desc}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-10">
+                {/* Indikator Titik (Dots) */}
+                <div className="flex gap-2">
+                  {tourStepsData.map((_, i) => (
+                    <div key={i} className={`h-2.5 rounded-full transition-all duration-300 ${i === tourStep ? 'w-8 bg-violet-600' : 'w-2.5 bg-slate-200'}`} />
+                  ))}
+                </div>
+                
+                {/* Tombol Navigasi */}
+                <div className="flex gap-3 w-full sm:w-auto">
+                  {tourStep > 0 && (
+                    <button onClick={handlePrevTour} className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+                      Kembali
+                    </button>
+                  )}
+                  <button onClick={handleNextTour} className="flex-1 sm:flex-none px-8 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-600/30 transition-transform hover:-translate-y-0.5">
+                    {tourStep === tourStepsData.length - 1 ? 'Mulai Gunakan' : 'Lanjut'}
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -1009,35 +1294,6 @@ export default function App() {
               className="w-full py-3.5 bg-slate-900 hover:bg-black text-white font-bold rounded-2xl shadow-lg transition-transform hover:-translate-y-1"
             >
               Baik, Saya Mengerti
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DUKUNGAN / DOA */}
-      {showSupportModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-          <div 
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-sm flex flex-col animate-in zoom-in-95 duration-300 p-8 text-center border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-20 h-20 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-rose-500/30">
-              <Heart className="w-10 h-10 text-white fill-white" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900 mb-2">Bermanfaat?</h2>
-            <p className="text-sm text-slate-500 mb-6">Jika tools ini membantu Anda, tolong aamiin kan doa ini ya..</p>
-            
-            <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5 mb-8 relative">
-              <p className="text-sm font-bold text-violet-900 italic relative z-10 leading-relaxed">
-                "Semoga Allah mudahkan rezeki yang membuat tools ini dan pengguna tools ini selalu dapat ROI 300% setiap hari."
-              </p>
-            </div>
-            
-            <button 
-              onClick={() => setShowSupportModal(false)}
-              className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/30 transition-transform hover:-translate-y-1 flex justify-center items-center gap-2"
-            >
-              Aamiin Ya Rabb
             </button>
           </div>
         </div>
@@ -1074,14 +1330,15 @@ export default function App() {
                     <thead className="bg-slate-800 text-slate-200 font-semibold sticky top-0">
                       <tr>
                         <th className="px-5 py-4 border-r border-slate-700">Tanggal</th>
-                        <th className="px-5 py-4 text-blue-300">Meta Spent (+{ppnPercentage}%)</th>
-                        <th className="px-5 py-4 text-blue-300">Hasil Klik (Meta)</th>
+                        <th className="px-5 py-4 text-blue-300">Biaya Iklan (+{ppnPercentage}%)</th>
+                        <th className="px-5 py-4 text-blue-300">Klik Meta</th>
                         <th className="px-5 py-4 text-blue-300">Avg CPC</th>
-                        <th className="px-5 py-4 text-orange-300">Shopee Clicks</th>
+                        <th className="px-5 py-4 text-orange-300">Klik Shopee</th>
                         <th className="px-5 py-4 text-orange-300">Shopee Orders</th>
                         <th className="px-5 py-4 text-orange-300">GMV</th>
                         <th className="px-5 py-4 text-orange-300">Komisi Shopee</th>
                         <th className="px-5 py-4 text-emerald-300">Keuntungan (Estimasi)</th>
+                        <th className="px-5 py-4 text-emerald-300">ROAS</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1090,6 +1347,7 @@ export default function App() {
                         const mSpentWithPpn = day.mSpent * ppnMultiplier;
                         const estKeuntungan = day.sComm - mSpentWithPpn;
                         const cpr = day.mResults > 0 ? mSpentWithPpn / day.mResults : (day.mClicks > 0 ? mSpentWithPpn / day.mClicks : 0);
+                        const roas = mSpentWithPpn > 0 ? estKeuntungan / mSpentWithPpn : (estKeuntungan > 0 ? Infinity : 0);
                         
                         return (
                           <tr key={i} className="hover:bg-slate-50 transition-colors">
@@ -1103,6 +1361,9 @@ export default function App() {
                             <td className="px-5 py-3 bg-orange-50/10 text-orange-600 font-bold">{formatCurrency(day.sComm)}</td>
                             <td className={`px-5 py-3 font-bold bg-emerald-50/20 ${estKeuntungan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {formatCurrency(estKeuntungan)}
+                            </td>
+                            <td className="px-5 py-3 font-bold bg-emerald-50/20 text-emerald-600">
+                              {roas === Infinity ? '∞' : `${roas.toFixed(2)}x`}
                             </td>
                           </tr>
                         );
@@ -1127,6 +1388,13 @@ export default function App() {
                         <td className="px-5 py-4 text-emerald-400">
                           {formatCurrency(tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0))}
                         </td>
+                        <td className="px-5 py-4 text-emerald-400">
+                          { (() => {
+                               const totalKeuntungan = tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0);
+                               const totalSpent = tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100));
+                               return totalSpent > 0 ? `${(totalKeuntungan / totalSpent).toFixed(2)}x` : (totalKeuntungan > 0 ? '∞' : '0x');
+                            })() }
+                        </td>
                       </tr>
                     </tfoot>
                   </table>
@@ -1148,20 +1416,13 @@ export default function App() {
               <span className="text-orange-500">SHOPEE AFFF</span> <span className="text-white">x</span> <span className="text-blue-500">META</span>
             </h1>
             <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">
-              Performance Dashboard & Tracking
+              Performance Dashboard & Tag Tracking
               <span className="block mt-0.5 text-[10px] text-slate-500 font-medium normal-case tracking-normal">by Slow Living Affiliate</span>
             </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowSupportModal(true)} 
-            className="flex items-center gap-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl transition-all border border-slate-700 shadow-sm group"
-          >
-            <Heart size={16} className="text-rose-400 group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline">Dukung</span>
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={() => { setShowTour(true); setTourStep(0); }} 
             className="flex items-center gap-2 text-sm font-bold text-slate-900 bg-white hover:bg-slate-100 px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-white/10"
@@ -1176,64 +1437,123 @@ export default function App() {
       <div className="w-full px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         
         {/* SECTION 1: UPLOAD DATA */}
-        <div id="step-upload" className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200/60 relative">
-          <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><UploadCloud size={20} /></div>
-            Import Data CSV
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div id="step-upload" className="bg-white p-8 sm:p-10 rounded-[2rem] shadow-sm border border-slate-200/80 relative overflow-hidden">
+          {/* Dekorasi Background */}
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 text-slate-50 opacity-50 pointer-events-none">
+            <UploadCloud size={300} />
+          </div>
+          
+          <div className="relative z-10 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-6">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3 mb-2">
+                <div className="bg-blue-600 p-2.5 rounded-2xl text-white shadow-lg shadow-blue-600/30">
+                  <UploadCloud size={24} />
+                </div>
+                Import Data CSV
+              </h2>
+              <p className="text-sm font-medium text-slate-500 ml-14">Unggah file laporan dari Meta dan Shopee untuk mulai sinkronisasi.</p>
+            </div>
             
-            {/* Upload Box 1 */}
-            <div className={`relative border-2 border-dashed rounded-[1.5rem] p-6 flex flex-col items-center justify-center transition-all duration-300 ${metaAds.length > 0 ? 'border-blue-500 bg-blue-50/50 shadow-inner' : 'border-slate-300 hover:bg-slate-50 hover:border-blue-400'}`}>
+            <div className="flex gap-2 ml-14 sm:ml-0">
+               <div className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                 <span className={`w-2 h-2 rounded-full ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                 {metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'Data Lengkap' : 'Menunggu Data'}
+               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            
+            {/* Upload Box 1: Meta Ads */}
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${metaAds.length > 0 ? 'bg-blue-50/50 border-2 border-blue-400 shadow-md shadow-blue-100' : 'bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/30 hover:shadow-lg'}`}>
               {metaAds.length > 0 && (
-                <button onClick={() => setMetaAds([])} className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-full transition-colors focus:outline-none">
-                  <X size={18} />
+                <button onClick={() => setMetaAds([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full shadow-sm transition-colors z-20 focus:outline-none">
+                  <X size={16} className="stroke-[3]" />
                 </button>
               )}
-              <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-center">
-                <Activity className={metaAds.length > 0 ? "text-blue-600 mb-3" : "text-slate-400 mb-3 group-hover:text-blue-500"} size={32} />
-                <span className="text-base font-bold text-slate-800">1. Data Meta Ads</span>
-                <span className="text-xs text-slate-500 mt-1.5">
-                  {metaAds.length > 0 ? <span className="text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded">{metaAds.length} baris termuat</span> : 'Gunakan Breakdown By Day'}
-                  <br/><span className="text-[11px] text-blue-500 font-semibold mt-2 inline-block">+ Pilih multiple file</span>
-                </span>
+              <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${metaAds.length > 0 ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/40 scale-110' : 'bg-white text-slate-400 shadow-sm border border-slate-200 group-hover:border-blue-200 group-hover:text-blue-500 group-hover:scale-110'}`}>
+                  <MetaIcon size={32} strokeWidth={metaAds.length > 0 ? 2.5 : 2} />
+                </div>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 1</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Data Meta Ads</span>
+                
+                {metaAds.length > 0 ? (
+                  <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
+                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 shadow-sm mb-1.5">
+                      {formatNumber(metaAds.length)} Baris
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center mt-1">
+                    <span className="text-xs text-slate-500 mb-3">Gunakan <span className="font-bold text-slate-700">Breakdown By Day</span></span>
+                    <span className="text-[11px] font-bold text-blue-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-blue-300 group-hover:bg-blue-50 transition-colors">Pilih File CSV</span>
+                  </div>
+                )}
                 <input type="file" multiple accept=".csv" className="hidden" onChange={(e) => handleMultiFileUpload(e, setMetaAds, r => r['Campaign name'] && parseNum(r['Amount spent (IDR)']) > 0, true)} />
               </label>
             </div>
 
-            {/* Upload Box 2 */}
-            <div className={`relative border-2 border-dashed rounded-[1.5rem] p-6 flex flex-col items-center justify-center transition-all duration-300 ${shopeeClicks.length > 0 ? 'border-orange-500 bg-orange-50/50 shadow-inner' : 'border-slate-300 hover:bg-slate-50 hover:border-orange-400'}`}>
-              {shopeeClicks.length > 0 && (
-                <button onClick={() => setShopeeClicks([])} className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-full transition-colors focus:outline-none">
-                  <X size={18} />
+            {/* Upload Box 2: Shopee Commissions */}
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeCommissions.length > 0 ? 'bg-emerald-50/50 border-2 border-emerald-400 shadow-md shadow-emerald-100' : 'bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/30 hover:shadow-lg'}`}>
+              {shopeeCommissions.length > 0 && (
+                <button onClick={() => setShopeeCommissions([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full shadow-sm transition-colors z-20 focus:outline-none">
+                  <X size={16} className="stroke-[3]" />
                 </button>
               )}
-              <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-center">
-                <MousePointerClick className={shopeeClicks.length > 0 ? "text-orange-500 mb-3" : "text-slate-400 mb-3"} size={32} />
-                <span className="text-base font-bold text-slate-800">2. Shopee Clicks</span>
-                <span className="text-xs text-slate-500 mt-1.5">
-                  {shopeeClicks.length > 0 ? <span className="text-orange-700 font-bold bg-orange-100 px-2 py-0.5 rounded">{shopeeClicks.length} klik termuat</span> : 'WebsiteClickReport.csv'}
-                  <br/><span className="text-[11px] text-orange-500 font-semibold mt-2 inline-block">+ Pilih multiple file</span>
-                </span>
-                <input type="file" multiple accept=".csv" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeClicks, r => r['Klik ID'], false)} />
+              <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeCommissions.length > 0 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 scale-110' : 'bg-white text-slate-400 shadow-sm border border-slate-200 group-hover:border-emerald-200 group-hover:text-emerald-500 group-hover:scale-110'}`}>
+                  <ShopeeIcon size={32} strokeWidth={shopeeCommissions.length > 0 ? 2.5 : 2} />
+                </div>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 2</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Komisi Shopee</span>
+                
+                {shopeeCommissions.length > 0 ? (
+                  <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-sm mb-1.5">
+                      {formatNumber(shopeeCommissions.length)} Pesanan
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center mt-1">
+                    <span className="text-xs text-slate-500 mb-3">File <span className="font-bold text-slate-700">AffiliateCommission</span></span>
+                    <span className="text-[11px] font-bold text-emerald-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-emerald-300 group-hover:bg-emerald-50 transition-colors">Pilih File CSV</span>
+                  </div>
+                )}
+                <input type="file" multiple accept=".csv" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeCommissions, r => r['ID Pemesanan'], false)} />
               </label>
             </div>
 
-            {/* Upload Box 3 */}
-            <div className={`relative border-2 border-dashed rounded-[1.5rem] p-6 flex flex-col items-center justify-center transition-all duration-300 ${shopeeCommissions.length > 0 ? 'border-emerald-500 bg-emerald-50/50 shadow-inner' : 'border-slate-300 hover:bg-slate-50 hover:border-emerald-400'}`}>
-              {shopeeCommissions.length > 0 && (
-                <button onClick={() => setShopeeCommissions([])} className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-full transition-colors focus:outline-none">
-                  <X size={18} />
+            {/* Upload Box 3: Shopee Clicks */}
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeClicks.length > 0 ? 'bg-orange-50/50 border-2 border-orange-400 shadow-md shadow-orange-100' : 'bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50/30 hover:shadow-lg'}`}>
+              {shopeeClicks.length > 0 && (
+                <button onClick={() => setShopeeClicks([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full shadow-sm transition-colors z-20 focus:outline-none">
+                  <X size={16} className="stroke-[3]" />
                 </button>
               )}
-              <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-center">
-                <DollarSign className={shopeeCommissions.length > 0 ? "text-emerald-500 mb-3" : "text-slate-400 mb-3"} size={32} />
-                <span className="text-base font-bold text-slate-800">3. Shopee Commissions</span>
-                <span className="text-xs text-slate-500 mt-1.5">
-                  {shopeeCommissions.length > 0 ? <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded">{shopeeCommissions.length} pesanan termuat</span> : 'AffiliateCommission.csv'}
-                  <br/><span className="text-[11px] text-emerald-500 font-semibold mt-2 inline-block">+ Pilih multiple file</span>
-                </span>
-                <input type="file" multiple accept=".csv" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeCommissions, r => r['ID Pemesanan'], false)} />
+              <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeClicks.length > 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/40 scale-110' : 'bg-white text-slate-400 shadow-sm border border-slate-200 group-hover:border-orange-200 group-hover:text-orange-500 group-hover:scale-110'}`}>
+                  <ShopeeIcon size={32} strokeWidth={shopeeClicks.length > 0 ? 2.5 : 2} />
+                </div>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 3</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Klik Shopee</span>
+                
+                {shopeeClicks.length > 0 ? (
+                  <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
+                    <span className="text-xs font-bold text-orange-700 bg-orange-100 px-3 py-1.5 rounded-xl border border-orange-200 shadow-sm mb-1.5">
+                      {formatNumber(shopeeClicks.length)} Klik
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center mt-1">
+                    <span className="text-xs text-slate-500 mb-3">File <span className="font-bold text-slate-700">WebsiteClickReport</span></span>
+                    <span className="text-[11px] font-bold text-orange-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-orange-300 group-hover:bg-orange-50 transition-colors">Pilih File CSV</span>
+                  </div>
+                )}
+                <input type="file" multiple accept=".csv" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeClicks, r => r['Klik ID'], false)} />
               </label>
             </div>
 
@@ -1309,26 +1629,26 @@ export default function App() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pt-2">
             
-            {/* KPI CARD: Meta Clicks */}
+            {/* KPI CARD: Klik Meta */}
             <div className="bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
               <div className="absolute -right-4 -top-4 opacity-20"><Target size={80} /></div>
               <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Meta Clicks</p>
+                <p className="text-sm font-bold text-white/90">Klik Meta</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
               </div>
-              <h3 className="text-3xl font-black relative z-10">{formatNumber(summaryData.metaResults)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.metaResults)}>{formatNumber(summaryData.metaResults)}</h3>
             </div>
 
-            {/* KPI CARD: Clicks */}
+            {/* KPI CARD: Klik Shopee */}
             <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-orange-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
               <div className="absolute -right-4 -top-4 opacity-20"><MousePointerClick size={80} /></div>
               <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Shopee Clicks</p>
+                <p className="text-sm font-bold text-white/90">Klik Shopee</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><MousePointerClick size={18} /></div>
               </div>
-              <h3 className="text-3xl font-black relative z-10">{formatNumber(summaryData.clicks)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.clicks)}>{formatNumber(summaryData.clicks)}</h3>
             </div>
             
             {/* KPI CARD: Orders */}
@@ -1338,7 +1658,7 @@ export default function App() {
                 <p className="text-sm font-bold text-white/90">Total Pesanan</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingCart size={18} /></div>
               </div>
-              <h3 className="text-3xl font-black relative z-10">{formatNumber(summaryData.orders)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.orders)}>{formatNumber(summaryData.orders)}</h3>
             </div>
             
             {/* KPI CARD: Produk Terjual */}
@@ -1348,7 +1668,7 @@ export default function App() {
                 <p className="text-sm font-bold text-white/90">Produk Terjual</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Package size={18} /></div>
               </div>
-              <h3 className="text-3xl font-black relative z-10">{formatNumber(summaryData.produkTerjual)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.produkTerjual)}>{formatNumber(summaryData.produkTerjual)}</h3>
             </div>
             
             {/* KPI CARD: GMV */}
@@ -1358,7 +1678,7 @@ export default function App() {
                 <p className="text-sm font-bold text-white/90">Total GMV</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingBag size={18} /></div>
               </div>
-              <h3 className="text-2xl font-black tracking-tight relative z-10">{formatCurrency(summaryData.gmv)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.gmv)}>{formatCurrency(summaryData.gmv)}</h3>
             </div>
 
             {/* KPI CARD: Commission */}
@@ -1368,7 +1688,7 @@ export default function App() {
                 <p className="text-sm font-bold text-white/90">Total Komisi</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><DollarSign size={18} /></div>
               </div>
-              <h3 className="text-2xl font-black tracking-tight relative z-10">{formatCurrency(summaryData.commission)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.commission)}>{formatCurrency(summaryData.commission)}</h3>
             </div>
 
             {/* KPI CARD: Spend */}
@@ -1378,68 +1698,207 @@ export default function App() {
                 <p className="text-sm font-bold text-white/90 leading-tight">Ad Spend<br/><span className="text-[10px] font-medium opacity-80">(+PPN {ppnPercentage}%)</span></p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
               </div>
-              <h3 className="text-2xl font-black tracking-tight relative z-10">{formatCurrency(summaryData.totalSpentWithPpn)}</h3>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.totalSpentWithPpn)}>{formatCurrency(summaryData.totalSpentWithPpn)}</h3>
             </div>
 
             {/* KPI CARD: Profit Dinamis */}
-            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryData.commission - summaryData.totalSpentWithPpn >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
               <div className="absolute -right-4 -top-4 opacity-10"><TrendingUp size={80} /></div>
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <p className="text-sm font-bold text-white/90">Keuntungan Bersih</p>
                 <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><TrendingUp size={18} /></div>
               </div>
-              <h3 className={`text-2xl font-black tracking-tight relative z-10 ${summaryData.commission - summaryData.totalSpentWithPpn >= 0 ? 'text-emerald-400' : 'text-white'}`}>
-                {formatCurrency(summaryData.commission - summaryData.totalSpentWithPpn)}
+              <h3 className={`text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate ${summaryProfit >= 0 ? 'text-emerald-400' : 'text-white'}`} title={formatCurrency(summaryProfit)}>
+                {formatCurrency(summaryProfit)}
               </h3>
+            </div>
+
+            {/* KPI CARD: ROI */}
+            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+              <div className="absolute -right-4 -top-4 opacity-10"><Target size={80} /></div>
+              <div className="flex justify-between items-start mb-4 relative z-10">
+                <p className="text-sm font-bold text-white/90">ROI</p>
+                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
+              </div>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoi}>{summaryRoi}</h3>
+            </div>
+
+            {/* KPI CARD: ROAS */}
+            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-fuchsia-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+              <div className="absolute -right-4 -top-4 opacity-10"><Activity size={80} /></div>
+              <div className="flex justify-between items-start mb-4 relative z-10">
+                <p className="text-sm font-bold text-white/90">ROAS</p>
+                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
+              </div>
+              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoas}>{summaryRoas}</h3>
             </div>
 
           </div>
 
-          {/* CHART RINGKASAN TREND KOMISI VS SPEND */}
-          {summaryDateFilter === 'all' && dailySummaryTrend.length > 0 && (
-            <div className="mt-6 border-t border-slate-100 pt-6 animate-in fade-in slide-in-from-top-4 duration-500">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
-                  <LineChart size={20} className="text-slate-400" />
-                  Tren Harian: Komisi vs Ad Spend
-                </h3>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-bold bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-md bg-orange-500 shadow-sm"></span> Komisi Shopee</span>
-                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-md bg-blue-500 shadow-sm"></span> Ad Spend (+PPN)</span>
-                  <span className="flex items-center gap-2"><span className="w-3.5 h-3.5 rounded-md bg-rose-400 shadow-sm"></span> Rugi</span>
-                </div>
-              </div>
-
-              <div className="flex items-end gap-3 h-[22rem] overflow-x-auto pb-6 pt-32 px-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-                {dailySummaryTrend.map((d, i) => {
-                  const profit = d.commission - d.spend;
-                  return (
-                    <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 group relative w-16 hover:-translate-y-2 transition-transform hover:z-50 cursor-pointer">
-                      <div className="w-full h-40 bg-slate-100/50 rounded-xl flex items-end justify-center gap-1 hover:bg-slate-200/70 transition-colors relative px-1 border-b-2 border-slate-200">
-                        <div className="w-1/2 bg-orange-500 rounded-t-md transition-all shadow-sm" style={{ height: `${(d.commission / maxSummaryVal) * 100}%`, minHeight: '6px' }}></div>
-                        <div className="w-1/2 bg-blue-500 rounded-t-md transition-all shadow-sm" style={{ height: `${(d.spend / maxSummaryVal) * 100}%`, minHeight: '6px' }}></div>
-
-                        {/* Tooltip Hover Chart */}
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-md text-white text-xs py-2 px-3.5 rounded-xl whitespace-nowrap z-[100] shadow-2xl border border-slate-700 pointer-events-none">
-                          <span className="font-black text-[11px] mb-2 border-b border-slate-700 pb-1.5 text-center text-slate-300">{formatDate(new Date(d.date))}</span>
-                          <div className="flex justify-between gap-5 mb-1.5">
-                            <span className="text-orange-400 font-medium">Komisi:</span>
-                            <span className="font-bold">{formatCurrency(d.commission)}</span>
-                          </div>
-                          <div className="flex justify-between gap-5 mb-2 border-b border-slate-700 pb-2">
-                            <span className="text-blue-300 font-medium">Spend:</span>
-                            <span className="font-bold">{formatCurrency(d.spend)}</span>
-                          </div>
-                          <div className={`flex justify-between gap-5 font-black text-xs ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            <span>{profit >= 0 ? 'Profit:' : 'Rugi:'}</span>
-                            <span>{formatCurrency(Math.abs(profit))}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-[11px] text-slate-500 whitespace-nowrap font-bold">{formatShortDate(d.date)}</span>
+          {/* KALENDER PROFIT HARIAN */}
+          {dailySummaryTrend.length > 0 && (
+            <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-top-4 duration-700">
+              <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 flex flex-col animate-in slide-in-from-bottom-4 duration-500 delay-100 relative z-20">
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white rounded-t-3xl relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3.5 rounded-2xl text-white shadow-lg shadow-violet-500/30 shrink-0">
+                      <Calendar size={28} strokeWidth={2.5} />
                     </div>
-                  );
-                })}
+                    <div>
+                      <h2 className="text-2xl font-black text-slate-900 tracking-tight">Kalender Profit Harian</h2>
+                      <p className="text-sm font-medium text-slate-500 mt-1">Detail performa harian: Komisi vs Pengeluaran Iklan.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+                     {selectedMonth && availableMonths.length > 0 && (
+                        <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-inner w-full sm:w-auto overflow-x-auto shrink-0">
+                           <div className="px-4 py-2 flex flex-col">
+                             <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Ad Spend</span>
+                             <span className="text-sm font-black text-rose-500 whitespace-nowrap">{formatCurrency(monthlySummary.spend)}</span>
+                           </div>
+                           <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
+                           <div className="px-4 py-2 flex flex-col">
+                             <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Komisi</span>
+                             <span className="text-sm font-black text-emerald-500 whitespace-nowrap">{formatCurrency(monthlySummary.commission)}</span>
+                           </div>
+                           <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
+                           <div className={`px-5 py-2 flex flex-col rounded-xl shadow-sm shrink-0 ${monthlySummary.profit >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                             <span className="text-[10px] text-white/80 uppercase font-black tracking-wider whitespace-nowrap">Net Profit</span>
+                             <span className="text-sm font-black whitespace-nowrap">{formatCurrency(monthlySummary.profit)}</span>
+                           </div>
+                        </div>
+                     )}
+                     <select
+                        className="text-sm border-2 border-slate-200 rounded-xl px-5 py-4 md:py-3 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-black text-slate-700 shadow-sm cursor-pointer bg-white transition-all w-full md:w-auto shrink-0"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                      >
+                        {availableMonths.map(m => <option key={m} value={m}>{formatMonthYear(m)}</option>)}
+                        {availableMonths.length === 0 && <option value="" disabled>Belum ada data</option>}
+                      </select>
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-6 bg-slate-50/30 rounded-b-3xl">
+                   {availableMonths.length === 0 ? (
+                      <div className="text-center py-16 flex flex-col items-center justify-center">
+                         <Calendar size={48} className="text-slate-300 mb-4" />
+                         <p className="text-slate-500 font-bold text-lg">Unggah data CSV untuk melihat kalender profit.</p>
+                      </div>
+                   ) : (
+                      <div className="grid grid-cols-7 gap-3 sm:gap-5 relative">
+                        {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map(day => (
+                          <div key={day} className="text-center font-black text-slate-400 text-[10px] sm:text-xs py-3 uppercase tracking-widest bg-white rounded-xl shadow-sm border border-slate-100">{day.substring(0, 3)}</div>
+                        ))}
+                        
+                        {calendarDays.map((cDay, i) => {
+                          if (!cDay) return <div key={`empty-${i}`} className="p-2 sm:p-4 rounded-2xl border border-transparent"></div>;
+
+                          let colorClass = 'text-slate-900';
+                          let bgClass = 'bg-white border-slate-200 hover:border-slate-300';
+                          let profitBg = 'bg-slate-100 text-slate-600';
+
+                          if (cDay.hasData) {
+                            if (cDay.profit > 0) {
+                              colorClass = 'text-emerald-700';
+                              bgClass = 'bg-emerald-50/40 border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-500/10';
+                              profitBg = 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm';
+                            } else if (cDay.profit < 0) {
+                              colorClass = 'text-rose-700';
+                              bgClass = 'bg-rose-50/40 border-rose-200 hover:border-rose-400 hover:shadow-rose-500/10';
+                              profitBg = 'bg-rose-100 text-rose-700 border border-rose-200 shadow-sm';
+                            } else {
+                              colorClass = 'text-slate-800';
+                              bgClass = 'bg-white border-slate-200 hover:border-slate-400 hover:shadow-slate-500/10';
+                              profitBg = 'bg-slate-100 text-slate-700 border border-slate-200 shadow-sm';
+                            }
+                          }
+
+                          const isFirstRow = i < 7; 
+                          const dayOfWeek = i % 7;
+
+                          let yPos = isFirstRow ? "top-full mt-3" : "bottom-full mb-3";
+                          let originY = isFirstRow ? "origin-top" : "origin-bottom";
+
+                          let xPos = "left-1/2 -translate-x-1/2";
+                          let originX = "";
+
+                          if (dayOfWeek === 0 || dayOfWeek === 1) { 
+                            xPos = "left-0";
+                            originX = "-left";
+                          } else if (dayOfWeek === 5 || dayOfWeek === 6) { 
+                            xPos = "right-0";
+                            originX = "-right";
+                          }
+
+                          const tooltipPosClass = `${yPos} ${xPos} ${originY}${originX}`;
+
+                          return (
+                            <div key={i} className={`flex flex-col p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl relative group hover:z-50 min-h-[100px] sm:min-h-[135px] cursor-pointer ${bgClass}`}>
+                               <div className="flex justify-between items-start mb-2">
+                                 <span className={`text-base sm:text-xl font-black ${cDay.hasData ? colorClass : 'text-slate-400'}`}>{cDay.day}</span>
+                                 {cDay.hasData && cDay.profit > 0 && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>}
+                                 {cDay.hasData && cDay.profit < 0 && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>}
+                               </div>
+                               
+                               {cDay.hasData && (
+                                 <div className="flex flex-col h-full justify-end gap-2 mt-auto">
+                                   <div className={`px-1 sm:px-2 py-1.5 rounded-lg text-center ${profitBg}`}>
+                                     <span className="block text-[10px] sm:text-xs font-black truncate">
+                                       {cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}
+                                     </span>
+                                   </div>
+                                   
+                                   <div className="hidden sm:flex flex-col gap-1 border-t border-slate-300/60 pt-2 mt-1">
+                                     <div className="flex justify-between items-center text-[9px] font-bold">
+                                       <span className="text-slate-400 uppercase tracking-widest">Spnd</span>
+                                       <span className="text-rose-500 truncate pl-1" title={formatCurrency(cDay.spend)}>{formatCurrency(cDay.spend)}</span>
+                                     </div>
+                                     <div className="flex justify-between items-center text-[9px] font-bold">
+                                       <span className="text-slate-400 uppercase tracking-widest">Comm</span>
+                                       <span className="text-emerald-600 truncate pl-1" title={formatCurrency(cDay.commission)}>{formatCurrency(cDay.commission)}</span>
+                                     </div>
+                                   </div>
+                                 </div>
+                               )}
+                               
+                               {cDay.hasData && (
+                                  <div className={`absolute ${tooltipPosClass} hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-xl text-white text-[10px] p-3.5 rounded-2xl w-48 z-[100] shadow-2xl border border-slate-700 pointer-events-none scale-0 group-hover:scale-100 transition-transform duration-200 ease-out`}>
+                                    <div className="font-black text-xs border-b border-slate-700/80 pb-1.5 mb-2 text-center text-white">{formatDate(new Date(cDay.dateStr))}</div>
+                                    
+                                    <div className="flex justify-between items-center mb-1.5">
+                                      <span className="text-slate-400 font-medium">Meta Klik/Order</span>
+                                      <span className="font-bold"><span className="text-sky-400">{formatNumber(cDay.metaClicks)}</span> <span className="text-slate-600">|</span> <span className="text-orange-400">{formatNumber(cDay.shopeeOrders)}</span></span>
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-center mb-1.5">
+                                      <span className="text-slate-400 font-medium">Ad Spend</span>
+                                      <span className="font-bold text-rose-400">{formatCurrency(cDay.spend)}</span>
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-center mb-1.5">
+                                      <span className="text-slate-400 font-medium">Komisi</span>
+                                      <span className="font-bold text-emerald-400">{formatCurrency(cDay.commission)}</span>
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-center mb-2.5 border-b border-slate-700/80 pb-2">
+                                      <span className="text-slate-400 font-medium">GMV</span>
+                                      <span className="font-bold text-slate-300">{formatCurrency(cDay.gmv)}</span>
+                                    </div>
+                                    
+                                    <div className={`flex justify-between items-center bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/5 ${cDay.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                      <span className="font-black uppercase tracking-widest text-[9px]">{cDay.profit >= 0 ? 'Profit' : 'Rugi'}</span>
+                                      <span className="font-black text-xs">{cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}</span>
+                                    </div>
+                                  </div>
+                               )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                   )}
+                </div>
               </div>
             </div>
           )}
@@ -1472,9 +1931,8 @@ export default function App() {
                         <th className="px-6 py-4 border-r border-slate-700">Campaign Name</th>
                         <th className="px-6 py-4 border-r border-slate-700">Total Hari Aktif</th>
                         <th className="px-6 py-4 border-r border-slate-700">Status Terakhir</th>
-                        <th className="px-6 py-4">Amount Spent</th>
-                        <th className="px-6 py-4">Link Clicks</th>
-                        <th className="px-6 py-4">Results</th>
+                        <th className="px-6 py-4">Biaya Iklan</th>
+                        <th className="px-6 py-4">Hasil Klik</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1488,7 +1946,6 @@ export default function App() {
                             </span>
                           </td>
                           <td className="px-6 py-4 font-bold text-slate-700">{formatCurrency(ad.spent)}</td>
-                          <td className="px-6 py-4 font-bold text-slate-700">{formatNumber(ad.clicks)}</td>
                           <td className="px-6 py-4 font-bold text-slate-700">{formatNumber(ad.results)}</td>
                         </tr>
                       ))}
@@ -1518,285 +1975,296 @@ export default function App() {
 
         {/* TAB 1: SECTION TABEL DETAIL PERFORMA TAG */}
         {activeTab === 'table' && (
-          <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500">
-            
-            {/* Toolbar Atas Tabel */}
-            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-orange-400 to-rose-500 p-2 rounded-xl text-white shadow-sm"><TrendingUp size={22} /></div>
-                <div>
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Kinerja Tag Kombinasi</h2>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Klik Nama Tag (teks biru) untuk detail data per hari.</p>
+          <>
+            {/* TABEL PERFORMA TAG */}
+            <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500">
+              
+              {/* Toolbar Atas Tabel */}
+              <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-br from-orange-400 to-rose-500 p-2 rounded-xl text-white shadow-sm"><TrendingUp size={22} /></div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Kinerja Tag Kombinasi</h2>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Klik Nama Tag (teks biru) untuk detail data per hari.</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <span className="text-sm font-bold text-slate-500 hidden sm:block">Filter Tanggal:</span>
+                    <select
+                      className="flex-1 sm:flex-none text-sm border border-slate-300 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 bg-white shadow-sm font-bold text-slate-800 cursor-pointer min-w-[200px]"
+                      value={tagTableDateFilter}
+                      onChange={(e) => setTagTableDateFilter(e.target.value)}
+                    >
+                      <option value="all">Semua Waktu (Keseluruhan)</option>
+                      {availableSummaryDates.map(date => (
+                        <option key={date} value={date}>{formatDate(new Date(date))}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="text-xs text-slate-600 flex items-center justify-center gap-2 bg-slate-50 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-200 font-bold shadow-sm w-full sm:w-auto">
+                    <GripHorizontal size={16} className="text-slate-400" /> Swipe Horizontal
+                  </div>
                 </div>
               </div>
-              <div className="text-xs text-slate-600 flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 font-bold shadow-sm">
-                <GripHorizontal size={16} className="text-slate-400" /> Swipe / Drag Horizontal
+
+              {/* PANEL ADD 1 BY 1 & MENGELOLA TAG */}
+              <div id="step-add-tag" className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
+                <div className="flex flex-col sm:flex-row gap-2 w-full max-w-lg relative z-20">
+                  <select
+                    className="flex-1 text-sm border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 bg-white shadow-sm font-bold text-slate-700"
+                    value={selectedTagToAdd}
+                    onChange={(e) => setSelectedTagToAdd(e.target.value)}
+                  >
+                    <option value="" disabled>Pilih Tag untuk dimasukkan ke tabel...</option>
+                    {availableTagsToAdd.map((t, idx) => (
+                      <option key={idx} value={t.tag}>
+                        {t.tag || '<Tanpa Tag>'} — ({formatNumber(t.shopeeOrders)} Pesanan)
+                      </option>
+                    ))}
+                    {aggregatedTags.length === 0 && <option value="" disabled>Upload Data CSV terlebih dahulu</option>}
+                  </select>
+                  <button
+                    onClick={handleAddTag}
+                    className="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20 disabled:opacity-50 disabled:hover:translate-y-0"
+                    disabled={!selectedTagToAdd}
+                  >
+                    <PlusCircle size={18} /> Tambah Tag
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 relative z-20">
+                  <button 
+                    onClick={() => setVisibleTags(aggregatedTags.map(t => t.tag))} 
+                    className="text-xs text-violet-700 hover:text-white font-bold px-4 py-2 bg-violet-100 hover:bg-violet-600 border border-violet-200 rounded-xl transition-colors whitespace-nowrap shadow-sm"
+                    disabled={aggregatedTags.length === 0}
+                  >
+                    Tampilkan Semua ({aggregatedTags.length})
+                  </button>
+                  <button 
+                    onClick={() => setVisibleTags([])} 
+                    className="text-xs text-rose-600 hover:text-white font-bold px-4 py-2 bg-rose-50 hover:bg-rose-600 border border-rose-200 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+                  >
+                    <Trash2 size={16} /> Kosongkan
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* PANEL ADD 1 BY 1 & MENGELOLA TAG */}
-            <div id="step-add-tag" className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
-              <div className="flex flex-col sm:flex-row gap-2 w-full max-w-lg relative z-20">
-                <select
-                  className="flex-1 text-sm border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 bg-white shadow-sm font-bold text-slate-700"
-                  value={selectedTagToAdd}
-                  onChange={(e) => setSelectedTagToAdd(e.target.value)}
-                >
-                  <option value="" disabled>Pilih Tag untuk dimasukkan ke tabel...</option>
-                  {availableTagsToAdd.map((t, idx) => (
-                    <option key={idx} value={t.tag}>
-                      {t.tag || '<Tanpa Tag>'} — ({formatNumber(t.shopeeOrders)} Pesanan)
-                    </option>
-                  ))}
-                  {aggregatedTags.length === 0 && <option value="" disabled>Upload Data CSV terlebih dahulu</option>}
-                </select>
-                <button
-                  onClick={handleAddTag}
-                  className="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20 disabled:opacity-50 disabled:hover:translate-y-0"
-                  disabled={!selectedTagToAdd}
-                >
-                  <PlusCircle size={18} /> Tambah Tag
-                </button>
-              </div>
-
-              <div className="flex items-center gap-3 relative z-20">
-                <button 
-                  onClick={() => setVisibleTags(aggregatedTags.map(t => t.tag))} 
-                  className="text-xs text-violet-700 hover:text-white font-bold px-4 py-2 bg-violet-100 hover:bg-violet-600 border border-violet-200 rounded-xl transition-colors whitespace-nowrap shadow-sm"
-                  disabled={aggregatedTags.length === 0}
-                >
-                  Tampilkan Semua ({aggregatedTags.length})
-                </button>
-                <button 
-                  onClick={() => setVisibleTags([])} 
-                  className="text-xs text-rose-600 hover:text-white font-bold px-4 py-2 bg-rose-50 hover:bg-rose-600 border border-rose-200 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm"
-                >
-                  <Trash2 size={16} /> Kosongkan
-                </button>
-              </div>
-            </div>
-
-            {/* CONTAINER TABEL UTAMA - DARK HEADER THEME */}
-            <div 
-              id="step-table"
-              ref={scrollRef}
-              onMouseDown={onMouseDown}
-              onMouseLeave={onMouseLeave}
-              onMouseUp={onMouseUp}
-              onMouseMove={onMouseMove}
-              className={`overflow-y-auto overflow-x-auto select-none max-h-[70vh] relative bg-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-50`}
-            >
-              <table className="min-w-max w-full text-xs text-left border-collapse">
-                <thead className="font-bold">
-                  <tr>
-                    {/* TH PERTAMA */}
-                    <th className="px-4 py-3 w-64 border-r border-slate-700 border-b-[3px] border-b-slate-900 bg-slate-900 text-white sticky top-0 left-0 z-30 shadow-[1px_0_0_0_#334155]">
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-[13px] tracking-wide">Tag Link Shopee &<br/>Kaitan Campaign Meta</span>
-                        <label className="flex items-center gap-1.5 mt-1 cursor-pointer w-fit group bg-slate-800/80 p-1.5 rounded-lg border border-slate-700">
-                          <input 
-                            type="checkbox" 
-                            className="rounded text-violet-500 focus:ring-violet-500 w-3.5 h-3.5 cursor-pointer bg-slate-700 border-slate-600"
-                            checked={filterActiveCampaigns}
-                            onChange={(e) => setFilterActiveCampaigns(e.target.checked)}
-                          />
-                          <span className="text-[10px] font-medium text-slate-300 group-hover:text-white transition-colors">Tampilkan yg aktif saja</span>
-                        </label>
-                      </div>
-                    </th>
-                    
-                    {/* KOLOM META ADS */}
-                    <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Amount Spent<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">PPN {ppnPercentage}%<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Taksiran Meta)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Hasil Klik<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 border-r border-r-slate-700 sticky top-0 z-20">Avg CTR<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                    
-                    {/* KOLOM SHOPEE */}
-                    <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Shopee Clicks<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Pesanan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Unik Resi)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">GMV<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Nilai Pembelian)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 border-r border-r-slate-700 sticky top-0 z-20">Total Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
-                    
-                    {/* KOLOM RATE KONVERSI */}
-                    <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Rate Link-&gt;Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Meta ke Shopee)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 border-r border-r-slate-700 sticky top-0 z-20">Rate Shopee-&gt;Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Shopee ke Checkout)</span></th>
-
-                    {/* KOLOM ROI & KEUNTUNGAN */}
-                    <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">Keuntungan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Komisi-Spent-PPN)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 border-r border-r-slate-700 sticky top-0 z-20">ROI<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return on Spend)</span></th>
-
-                    {/* KOLOM LAINNYA */}
-                    <th className="px-3 py-3 bg-slate-800 text-slate-300 border-b-[3px] border-b-slate-600 sticky top-0 z-20">Statistik Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Avg, Max, Min)</span></th>
-                    <th className="px-3 py-3 bg-slate-800 text-slate-300 border-b-[3px] border-b-slate-600 sticky top-0 z-20">Jeda Waktu Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Dari saat diklik)</span></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white relative z-0">
-                  
-                  {displayedTagsInTable.length === 0 ? (
+              {/* CONTAINER TABEL UTAMA - DARK HEADER THEME */}
+              <div 
+                id="step-table"
+                ref={scrollRef}
+                onMouseDown={onMouseDown}
+                onMouseLeave={onMouseLeave}
+                onMouseUp={onMouseUp}
+                onMouseMove={onMouseMove}
+                className={`overflow-y-auto overflow-x-auto select-none max-h-[70vh] relative bg-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-50`}
+              >
+                <table className="min-w-max w-full text-xs text-left border-collapse">
+                  <thead className="font-bold">
                     <tr>
-                      <td colSpan="15" className="px-4 py-32 text-center">
-                        <div className="flex flex-col items-center justify-center text-slate-400">
-                          <LayoutList size={56} className="mb-5 opacity-40 text-violet-500" />
-                          <h3 className="text-xl font-black text-slate-700 mb-2 tracking-tight">Data Tabel Kosong</h3>
-                          <p className="text-sm font-medium">Silakan pilih dan <b className="text-slate-800 bg-slate-100 px-2 py-0.5 rounded">Tambah Tag</b> melalui menu dropdown di atas tabel.</p>
+                      {/* TH PERTAMA */}
+                      <th className="px-4 py-3 w-64 border-r border-slate-700 border-b-[3px] border-b-slate-900 bg-slate-900 text-white sticky top-0 left-0 z-30 shadow-[1px_0_0_0_#334155]">
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[13px] tracking-wide">Tag Link Shopee &<br/>Kaitan Campaign Meta</span>
+                          <label className="flex items-center gap-1.5 mt-1 cursor-pointer w-fit group bg-slate-800/80 p-1.5 rounded-lg border border-slate-700">
+                            <input 
+                              type="checkbox" 
+                              className="rounded text-violet-500 focus:ring-violet-500 w-3.5 h-3.5 cursor-pointer bg-slate-700 border-slate-600"
+                              checked={filterActiveCampaigns}
+                              onChange={(e) => setFilterActiveCampaigns(e.target.checked)}
+                            />
+                            <span className="text-[10px] font-medium text-slate-300 group-hover:text-white transition-colors">Tampilkan yg aktif saja</span>
+                          </label>
                         </div>
-                      </td>
+                      </th>
+                      
+                      {/* KOLOM META ADS */}
+                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Biaya Iklan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">PPN {ppnPercentage}%<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Taksiran Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Klik Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 border-r border-r-slate-700 sticky top-0 z-20">Avg CTR<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      
+                      {/* KOLOM SHOPEE */}
+                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Klik Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Pesanan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Unik Resi)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">GMV<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Nilai Pembelian)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 border-r border-r-slate-700 sticky top-0 z-20">Total Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
+                      
+                      {/* KOLOM RATE KONVERSI */}
+                      <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Rate Klik-&gt;Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Klik Meta ke Shopee)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 border-r border-r-slate-700 sticky top-0 z-20">Rate Shopee-&gt;Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Shopee ke Checkout)</span></th>
+
+                      {/* KOLOM ROI & KEUNTUNGAN */}
+                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">Keuntungan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Komisi-Spent-PPN)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">ROI<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return on Investment)</span></th>
+                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 border-r border-r-slate-700 sticky top-0 z-20">ROAS<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return On Ads Spend)</span></th>
                     </tr>
-                  ) : (
-                    displayedTagsInTable.map((item, idx) => {
-                      let roiStr = '-';
-                      if (item.roi === Infinity) roiStr = '∞';
-                      else if (item.amountSpent > 0) roiStr = `${item.roi.toFixed(2)}%`;
-                      else roiStr = '0%';
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white relative z-0">
+                    
+                    {displayedTagsInTable.length === 0 ? (
+                      <tr>
+                        <td colSpan="15" className="px-4 py-32 text-center">
+                          <div className="flex flex-col items-center justify-center text-slate-400">
+                            <LayoutList size={56} className="mb-5 opacity-40 text-violet-500" />
+                            <h3 className="text-xl font-black text-slate-700 mb-2 tracking-tight">Data Tabel Kosong</h3>
+                            <p className="text-sm font-medium">Silakan pilih dan <b className="text-slate-800 bg-slate-100 px-2 py-0.5 rounded">Tambah Tag</b> melalui menu dropdown di atas tabel.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      displayedTagsInTable.map((item, idx) => {
+                        let roiStr = '-';
+                        if (item.roi === Infinity) roiStr = '∞';
+                        else if (item.amountSpent > 0) roiStr = `${item.roi.toFixed(2)}%`;
+                        else roiStr = '0%';
 
-                      let rateL2S_Str = item.rateLinkShopee === Infinity ? '∞' : `${item.rateLinkShopee.toFixed(2)}%`;
+                        let roasStr = '-';
+                        if (item.roas === Infinity) roasStr = '∞';
+                        else if (item.amountSpent > 0) roasStr = `${item.roas.toFixed(2)}x`;
+                        else roasStr = '0x';
 
-                      return (
-                        <tr key={idx} className="group transition-colors relative z-0 hover:bg-slate-50/70">
-                          
-                          {/* TD PERTAMA (Sticky kiri) - Tetap terang untuk kontras */}
-                          <td className="px-4 py-3.5 align-middle border-r border-slate-200 bg-white sticky left-0 z-10 group-hover:bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">
+                        let rateL2S_Str = item.rateLinkShopee === Infinity ? '∞' : `${item.rateLinkShopee.toFixed(2)}%`;
+
+                        return (
+                          <tr key={idx} className="group transition-colors relative z-0 hover:bg-slate-50/70">
                             
-                            <div className="flex justify-between items-start mb-2">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedTagForModal(item.tag); }}
-                                className="font-black text-violet-700 hover:text-violet-900 text-[13px] text-left hover:underline flex items-center gap-1.5 transition-colors"
-                                title="Klik untuk lihat detail harian"
-                              >
-                                {item.tag || '<Tanpa Tag>'} <ExternalLink size={12} className="opacity-60" />
-                              </button>
+                            {/* TD PERTAMA (Sticky kiri) - Tetap terang untuk kontras */}
+                            <td className="px-4 py-3.5 align-middle border-r border-slate-200 bg-white sticky left-0 z-10 group-hover:bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">
                               
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); setVisibleTags(visibleTags.filter(t => t !== item.tag)); }} 
-                                className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded p-1 transition-colors"
-                                title="Hapus dari tabel"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
+                              <div className="flex justify-between items-start mb-2">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); setSelectedTagForModal(item.tag); }}
+                                  className="font-black text-violet-700 hover:text-violet-900 text-[13px] text-left hover:underline flex items-center gap-1.5 transition-colors"
+                                  title="Klik untuk lihat detail harian"
+                                >
+                                  {item.tag || '<Tanpa Tag>'} <ExternalLink size={12} className="opacity-60" />
+                                </button>
+                                
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); setVisibleTags(visibleTags.filter(t => t !== item.tag)); }} 
+                                  className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded p-1 transition-colors"
+                                  title="Hapus dari tabel"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {item.linkedCampaigns.map(c => (
+                                  <span key={c} className="inline-flex items-center gap-1 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded-md max-w-[200px] shadow-sm">
+                                    <span className="truncate" title={c}>{c}</span>
+                                    <button onClick={() => unlinkCampaign(item.tag, c)} className="hover:text-rose-400 focus:outline-none rounded-full p-px opacity-80 hover:opacity-100 transition-colors bg-white/20">
+                                      <X size={10} />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="relative" onMouseDown={(e) => e.stopPropagation()}>
+                                <select 
+                                  className="w-full max-w-[200px] text-[10px] border border-violet-200 rounded-xl py-1.5 px-3 bg-violet-50/50 text-violet-800 font-bold focus:ring-2 focus:ring-violet-400 outline-none shadow-sm hover:bg-violet-100 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-violet-50/50"
+                                  onChange={(e) => {
+                                    linkCampaign(item.tag, e.target.value);
+                                    e.target.value = ""; 
+                                  }}
+                                  defaultValue=""
+                                  disabled={item.linkedCampaigns.length >= 1}
+                                >
+                                  <option value="" disabled>
+                                    {item.linkedCampaigns.length >= 1 ? 'Maksimal 1 Campaign Terkait' : '+ Kaitkan Campaign Meta...'}
+                                  </option>
+                                  {uniqueCampaignNames
+                                    .filter(name => !filterActiveCampaigns || activeCampaignNames.includes(name))
+                                    .map((campaignName, i) => {
+                                      if (item.linkedCampaigns.includes(campaignName)) return null;
+                                      return (
+                                        <option key={i} value={campaignName}>
+                                          {campaignName}
+                                        </option>
+                                      );
+                                  })}
+                                  {uniqueCampaignNames.length === 0 && <option value="" disabled>Data Kosong</option>}
+                                  {filterActiveCampaigns && activeCampaignNames.length === 0 && uniqueCampaignNames.length > 0 && <option value="" disabled>Tidak ada yg aktif</option>}
+                                </select>
+                              </div>
+                            </td>
+
+                            {/* Kolom Metrik */}
+                            <td className={getTdClass(item.amountSpent, 'amountSpent', 'bg-blue-50/10')}>
+                              <div className="font-bold text-slate-800 text-[13px]">{formatCurrency(item.amountSpent)}</div>
+                            </td>
+                            <td className={getTdClass(item.ppn, 'ppn', 'bg-blue-50/10')}>
+                              <div className="font-bold text-[13px] text-blue-600">{formatCurrency(item.ppn)}</div>
+                            </td>
+                            <td className={getTdClass(item.results, 'metaClicks', 'bg-blue-50/10')}>
+                              <div className="font-black text-slate-800 text-[13px]">{formatNumber(item.results)}</div>
+                            </td>
+                            <td className={getTdClass(item.cpr, 'cpr', 'bg-blue-50/10')}>
+                              <div className="font-bold text-slate-700 text-[13px]">{formatCurrency(item.cpr)}</div>
+                            </td>
+                            <td className={getTdClass(item.ctr, 'ctr', 'bg-blue-50/10 border-r border-slate-100')}>
+                              <div className="font-bold text-slate-700 text-[13px]">{item.ctr.toFixed(2)}%</div>
+                            </td>
                             
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              {item.linkedCampaigns.map(c => (
-                                <span key={c} className="inline-flex items-center gap-1 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded-md max-w-[200px] shadow-sm">
-                                  <span className="truncate" title={c}>{c}</span>
-                                  <button onClick={() => unlinkCampaign(item.tag, c)} className="hover:text-rose-400 focus:outline-none rounded-full p-px opacity-80 hover:opacity-100 transition-colors bg-white/20">
-                                    <X size={10} />
-                                  </button>
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="relative" onMouseDown={(e) => e.stopPropagation()}>
-                              <select 
-                                className="w-full max-w-[200px] text-[10px] border border-violet-200 rounded-xl py-1.5 px-3 bg-violet-50/50 text-violet-800 font-bold focus:ring-2 focus:ring-violet-400 outline-none shadow-sm hover:bg-violet-100 transition-colors cursor-pointer"
-                                onChange={(e) => {
-                                  linkCampaign(item.tag, e.target.value);
-                                  e.target.value = ""; 
-                                }}
-                                defaultValue=""
-                              >
-                                <option value="" disabled>+ Kaitkan Campaign Meta...</option>
-                                {uniqueCampaignNames
-                                  .filter(name => !filterActiveCampaigns || activeCampaignNames.includes(name))
-                                  .map((campaignName, i) => {
-                                    if (item.linkedCampaigns.includes(campaignName)) return null;
-                                    return (
-                                      <option key={i} value={campaignName}>
-                                        {campaignName}
-                                      </option>
-                                    );
-                                })}
-                                {uniqueCampaignNames.length === 0 && <option value="" disabled>Data Kosong</option>}
-                                {filterActiveCampaigns && activeCampaignNames.length === 0 && uniqueCampaignNames.length > 0 && <option value="" disabled>Tidak ada yg aktif</option>}
-                              </select>
-                            </div>
-                          </td>
-
-                          {/* Kolom Metrik */}
-                          <td className={getTdClass(item.amountSpent, 'amountSpent', 'bg-blue-50/10')}>
-                            <div className="font-bold text-slate-800 text-[13px]">{formatCurrency(item.amountSpent)}</div>
-                          </td>
-                          <td className={getTdClass(item.ppn, 'ppn', 'bg-blue-50/10')}>
-                            <div className="font-bold text-[11px] text-blue-600">{formatCurrency(item.ppn)}</div>
-                          </td>
-                          <td className={getTdClass(item.results, 'metaClicks', 'bg-blue-50/10')}>
-                            <div className="font-black text-slate-800 text-[13px]">{formatNumber(item.results)}</div>
-                          </td>
-                          <td className={getTdClass(item.cpr, 'cpr', 'bg-blue-50/10')}>
-                            <div className="font-bold text-slate-700 text-[13px]">{formatCurrency(item.cpr)}</div>
-                          </td>
-                          <td className={getTdClass(item.ctr, 'ctr', 'bg-blue-50/10 border-r border-slate-100')}>
-                            <div className="font-bold text-slate-700 text-[13px]">{item.ctr.toFixed(2)}%</div>
-                          </td>
-                          
-                          <td className={getTdClass(item.shopeeClicks, 'shopeeClicks', 'bg-orange-50/10')}>
-                            <div className="font-black text-[13px] text-slate-800">{formatNumber(item.shopeeClicks)}</div>
-                            {item.minClick && (
-                              <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-400">
-                                {formatShortDate(item.minClick)} - {formatShortDate(item.maxClick)}
+                            <td className={getTdClass(item.shopeeClicks, 'shopeeClicks', 'bg-orange-50/10')}>
+                              <div className="font-black text-[13px] text-slate-800">{formatNumber(item.shopeeClicks)}</div>
+                              {item.minClick && (
+                                <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-400">
+                                  {formatShortDate(item.minClick)} - {formatShortDate(item.maxClick)}
+                                </div>
+                              )}
+                            </td>
+                            <td className={getTdClass(item.shopeeOrders, 'shopeeOrders', 'bg-orange-50/10')}>
+                              <div className="font-black text-[13px] text-slate-800">{formatNumber(item.shopeeOrders)}</div>
+                              {item.minOrder && (
+                                <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-400">
+                                  {formatShortDate(item.minOrder)} - {formatShortDate(item.maxOrder)}
+                                </div>
+                              )}
+                            </td>
+                            <td className={getTdClass(item.gmv, 'gmv', 'bg-orange-50/10')}>
+                              <div className="text-[13px] font-black text-slate-800">{formatCurrency(item.gmv)}</div>
+                            </td>
+                            <td className={getTdClass(item.shopeeCommission, 'shopeeCommission', 'bg-orange-50/10 border-r border-slate-100')}>
+                              <div className="text-[13px] font-black text-orange-600">{formatCurrency(item.shopeeCommission)}</div>
+                            </td>
+                            
+                            <td className={getTdClass(item.rateLinkShopee, 'rateLinkShopee', 'bg-teal-50/10')}>
+                              <div className="font-black text-[13px] text-slate-900">{rateL2S_Str}</div>
+                            </td>
+                            <td className={getTdClass(item.rateShopeeOrder, 'rateShopeeOrder', 'bg-teal-50/10 border-r border-slate-100')}>
+                              <div className="font-black text-[13px] text-slate-900">{item.rateShopeeOrder.toFixed(2)}%</div>
+                            </td>
+                            
+                            <td className={getTdClass(item.keuntungan, 'keuntungan', 'bg-emerald-50/10')}>
+                              <div className={`font-black text-[13px] tracking-tight ${item.keuntungan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {item.keuntungan < 0 && '- '}{formatCurrency(Math.abs(item.keuntungan))}
                               </div>
-                            )}
-                          </td>
-                          <td className={getTdClass(item.shopeeOrders, 'shopeeOrders', 'bg-orange-50/10')}>
-                            <div className="font-black text-[13px] text-slate-800">{formatNumber(item.shopeeOrders)}</div>
-                            {item.minOrder && (
-                              <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-400">
-                                {formatShortDate(item.minOrder)} - {formatShortDate(item.maxOrder)}
+                            </td>
+                            <td className={getTdClass(item.roi, 'roi', 'bg-emerald-50/10')}>
+                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.keuntungan >= 0 ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'}`}>
+                                {roiStr}
                               </div>
-                            )}
-                          </td>
-                          <td className={getTdClass(item.gmv, 'gmv', 'bg-orange-50/10')}>
-                            <div className="text-[13px] font-black text-slate-800">{formatCurrency(item.gmv)}</div>
-                          </td>
-                          <td className={getTdClass(item.shopeeCommission, 'shopeeCommission', 'bg-orange-50/10 border-r border-slate-100')}>
-                            <div className="text-[13px] font-black text-orange-600">{formatCurrency(item.shopeeCommission)}</div>
-                          </td>
-                          
-                          <td className={getTdClass(item.rateLinkShopee, 'rateLinkShopee', 'bg-teal-50/10')}>
-                            <div className="font-black text-[13px] text-teal-700">{rateL2S_Str}</div>
-                          </td>
-                          <td className={getTdClass(item.rateShopeeOrder, 'rateShopeeOrder', 'bg-teal-50/10 border-r border-slate-100')}>
-                            <div className="font-black text-[13px] text-teal-700">{item.rateShopeeOrder.toFixed(2)}%</div>
-                          </td>
-                          
-                          <td className={getTdClass(item.keuntungan, 'keuntungan', 'bg-emerald-50/10')}>
-                            <div className={`font-black text-[13px] tracking-tight ${item.keuntungan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {item.keuntungan < 0 && '- '}{formatCurrency(Math.abs(item.keuntungan))}
-                            </div>
-                          </td>
-                          <td className={getTdClass(item.roi, 'roi', 'bg-emerald-50/10 border-r border-slate-100')}>
-                            <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.keuntungan >= 0 ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'}`}>
-                              {roiStr}
-                            </div>
-                          </td>
-                          
-                          <td className="px-3 py-3 align-middle text-[11px] space-y-1 font-medium text-slate-600 whitespace-nowrap bg-white/50">
-                            {item.shopeeOrders > 0 ? (
-                              <>
-                                <div><span className="text-slate-400 inline-block w-8">Avg:</span> <span className="font-bold text-slate-700">{formatCurrency(item.avgComm)}</span></div>
-                                <div><span className="text-slate-400 inline-block w-8">Max:</span> <span className="font-bold text-emerald-600">{formatCurrency(item.maxComm)}</span></div>
-                                <div><span className="text-slate-400 inline-block w-8">Min:</span> <span className="font-bold text-rose-500">{formatCurrency(item.minComm)}</span></div>
-                              </>
-                            ) : '-'}
-                          </td>
-                          <td className="px-3 py-3 align-middle text-[11px] space-y-1 font-medium text-slate-600 whitespace-nowrap bg-white/50">
-                            {item.shopeeOrders > 0 ? (
-                              <>
-                                <div><span className="text-slate-400 inline-block w-10">Cepat:</span> <span className="font-bold text-slate-700">{formatDuration(item.minDiff)}</span></div>
-                                <div><span className="text-slate-400 inline-block w-10">Lama:</span> <span className="font-bold text-slate-700">{formatDuration(item.maxDiff)}</span></div>
-                              </>
-                            ) : '-'}
-                          </td>
+                            </td>
+                            <td className={getTdClass(item.roas, 'roas', 'bg-emerald-50/10 border-r border-slate-100')}>
+                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.roas >= 0 ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'}`}>
+                                {roasStr}
+                              </div>
+                            </td>
 
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* TAB 2: SECTION ANALITIK CHARTS */}
@@ -1950,6 +2418,127 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* List: Top 10 Produk Terjual */}
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-cyan-100 p-2 rounded-xl text-cyan-600"><Package size={22} /></div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">Top 10 Produk Terjual (Berdasarkan Qty)</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8 pt-2">
+                {topProducts.map((prod, i) => {
+                   const maxQty = topProducts[0]?.qty || 1;
+                   return (
+                    <div key={i} className="flex flex-col justify-center group hover:scale-[1.02] transition-transform">
+                      <div className="flex justify-between items-start text-sm mb-2 gap-3">
+                        <span className="font-black text-slate-800 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
+                          <span className="text-cyan-500 font-black mr-1.5">#{i + 1}</span> 
+                          {prod.name}
+                        </span>
+                        <span className="text-cyan-600 font-black whitespace-nowrap text-base">{formatNumber(prod.qty)} <span className="text-[10px] text-slate-400 font-bold">Qty</span></span>
+                      </div>
+                      
+                      <div className="flex justify-between text-[11px] text-slate-500 mb-2.5 font-bold">
+                        <span>GMV: {formatCurrency(prod.gmv)}</span>
+                        <span className="bg-slate-100 px-2 py-0.5 rounded-md text-emerald-600">Komisi: {formatCurrency(prod.commission)}</span>
+                      </div>
+
+                      <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden border border-slate-200/50">
+                        <div className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all" style={{ width: `${(prod.qty / maxQty) * 100}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {topProducts.length === 0 && (
+                  <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
+                    Data produk belum tersedia. Pastikan kolom "Nama Produk" atau "Nama Barang" ada di file CSV Anda.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* List: Top 10 Produk Terjual (Berdasarkan Komisi) */}
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600"><DollarSign size={22} /></div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">Top 10 Produk Terjual (Berdasarkan Komisi)</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8 pt-2">
+                {topProductsByComm.map((prod, i) => {
+                   const maxComm = topProductsByComm[0]?.commission || 1;
+                   return (
+                    <div key={i} className="flex flex-col justify-center group hover:scale-[1.02] transition-transform">
+                      <div className="flex justify-between items-start text-sm mb-2 gap-3">
+                        <span className="font-black text-slate-800 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
+                          <span className="text-emerald-500 font-black mr-1.5">#{i + 1}</span> 
+                          {prod.name}
+                        </span>
+                        <span className="text-emerald-600 font-black whitespace-nowrap text-base">{formatCurrency(prod.commission)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between text-[11px] text-slate-500 mb-2.5 font-bold">
+                        <span>GMV: {formatCurrency(prod.gmv)}</span>
+                        <span className="bg-slate-100 px-2 py-0.5 rounded-md text-cyan-600">Terjual: {formatNumber(prod.qty)} Qty</span>
+                      </div>
+
+                      <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden border border-slate-200/50">
+                        <div className="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all" style={{ width: `${(prod.commission / maxComm) * 100}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {topProductsByComm.length === 0 && (
+                  <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
+                    Data produk belum tersedia. Pastikan kolom "Nama Produk" atau "Nama Barang" ada di file CSV Anda.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Chart: Persentase Kategori Produk */}
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 border-b border-slate-100 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="bg-fuchsia-100 p-2 rounded-xl text-fuchsia-600"><PieChart size={22} /></div>
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Persentase Kategori Produk</h2>
+                </div>
+                <select
+                  className="text-sm border border-slate-300 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 font-bold text-slate-700 max-w-[250px] shadow-sm cursor-pointer bg-white"
+                  value={selectedCategoryLevel}
+                  onChange={(e) => setSelectedCategoryLevel(e.target.value)}
+                >
+                  <option value="l1">Kategori L1 (Utama)</option>
+                  <option value="l2">Kategori L2 (Sub-kategori)</option>
+                  <option value="l3">Kategori L3 (Spesifik)</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 pt-2">
+                {categoryStats[selectedCategoryLevel].slice(0, 15).map((cat, i) => {
+                  const pct = categoryStats.total > 0 ? ((cat.count / categoryStats.total) * 100).toFixed(1) : 0;
+                  return (
+                    <div key={i} className="group">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="font-bold text-slate-700 truncate pr-4" title={cat.name}>{cat.name}</span>
+                        <div className="text-right whitespace-nowrap">
+                          <span className="text-slate-900 font-black">{formatNumber(cat.count)}</span> <span className="text-slate-400 font-medium ml-1">({pct}%)</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner border border-slate-200/50">
+                        <div className="bg-gradient-to-r from-fuchsia-400 to-purple-500 h-full rounded-full transition-all group-hover:opacity-80" style={{ width: `${pct}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {categoryStats[selectedCategoryLevel].length === 0 && (
+                   <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
+                     Data kategori belum tersedia di file CSV Anda.
+                   </div>
+                )}
               </div>
             </div>
 
