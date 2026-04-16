@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { UploadCloud, X, GripHorizontal, BarChart3, TrendingUp, MousePointerClick, DollarSign, ShoppingCart, Activity, Calendar, ToggleLeft, ToggleRight, BarChart2, PieChart, Trophy, Target, ChevronDown, ChevronUp, LayoutList, LineChart, PlusCircle, Trash2, ExternalLink, HelpCircle, Lightbulb, Heart, AlertTriangle, ShoppingBag, Package, Rocket } from 'lucide-react';
+import { UploadCloud, X, GripHorizontal, BarChart3, TrendingUp, MousePointerClick, DollarSign, ShoppingCart, Activity, Calendar, ToggleLeft, ToggleRight, BarChart2, PieChart, Trophy, Target, ChevronDown, ChevronUp, LayoutList, LineChart, PlusCircle, Trash2, ExternalLink, HelpCircle, Lightbulb, Heart, AlertTriangle, ShoppingBag, Package, Rocket, Download, FileText, Printer, FileSpreadsheet, Eye, EyeOff } from 'lucide-react';
 
 const MetaIcon = ({ size = 24, className = "", strokeWidth = 2 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth={strokeWidth} fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -16,97 +16,93 @@ const ShopeeIcon = ({ size = 24, className = "", strokeWidth = 2 }) => (
   </svg>
 );
 
+// --- HELPER UNTUK MENGATASI PERBEDAAN FORMAT TANGGAL ---
+const extractDateOnly = (rawStr) => {
+  if (!rawStr || rawStr === '--' || rawStr === '-') return null;
+  let dStr = String(rawStr).trim().split(' ')[0];
+  dStr = dStr.replaceAll('/', '-');
+  const parts = dStr.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length <= 2 && parts[2].length === 4) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    if (parts[0].length === 4) {
+      return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+    }
+  }
+  return dStr;
+};
+
+const getSafeDateObj = (rawStr) => {
+  if (!rawStr || rawStr === '--' || rawStr === '-') return null;
+  const parts = String(rawStr).trim().split(' ');
+  const datePart = extractDateOnly(parts[0]);
+  if (!datePart) return null;
+  const timePart = parts[1] || '00:00:00';
+  const d = new Date(`${datePart}T${timePart}`);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export default function App() {
   // --- STATE UNTUK DATA CSV ---
   const [shopeeClicks, setShopeeClicks] = useState([]);
   const [shopeeCommissions, setShopeeCommissions] = useState([]);
   const [metaAds, setMetaAds] = useState([]);
 
-  // BARU: State untuk Animasi Loading Saat Parsing File Besar
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // State untuk Tab Aktif (Table vs Charts)
-  const [activeTab, setActiveTab] = useState('table');
-
-  // State untuk menyimpan pemetaan Tag_link ke Campaign Meta
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [tagMappings, setTagMappings] = useState({});
-
-  // State untuk Sinkronisasi Tanggal
   const [isSyncDate, setIsSyncDate] = useState(true);
-
-  // State untuk Filter Ringkasan & PPN Dinamis
   const [summaryDateFilter, setSummaryDateFilter] = useState('all');
   const [ppnPercentage, setPpnPercentage] = useState(11); 
-
-  // State untuk Menampilkan/Menyembunyikan Tabel Meta Ads
   const [showMetaAdsTable, setShowMetaAdsTable] = useState(false);
-
-  // State untuk Filter Campaign Aktif di Dropdown
   const [filterActiveCampaigns, setFilterActiveCampaigns] = useState(false);
-
-  // State untuk Tag yang ditampilkan di Tabel (Add 1 by 1)
   const [visibleTags, setVisibleTags] = useState([]);
   const [selectedTagToAdd, setSelectedTagToAdd] = useState('');
-
-  // State untuk pop-up detail harian tag
   const [selectedTagForModal, setSelectedTagForModal] = useState(null);
-
-  // State untuk pilihan tag di Chart Harian
   const [selectedChartTag, setSelectedChartTag] = useState('');
-
-  // State untuk Level Kategori Produk
   const [selectedCategoryLevel, setSelectedCategoryLevel] = useState('l1');
-
-  // State untuk Pilihan Bulan di Kalender Profit
   const [selectedMonth, setSelectedMonth] = useState('');
-
-  // State Filter Tanggal khusus Tabel Performa Tag
   const [tagTableDateFilter, setTagTableDateFilter] = useState('all');
+  const [isNamesHidden, setIsNamesHidden] = useState(false); // BARU: State untuk Sensor Nama
+  
+  const [exportMonth, setExportMonth] = useState('');
+  const [exportType, setExportType] = useState('profit');
 
-  // --- STATE UNTUK ONBOARDING TOUR (MODERN MODAL) ---
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
-
-  // State untuk Peringatan Meta Ads tanpa Breakdown
   const [showMetaWarning, setShowMetaWarning] = useState(false);
 
-  // DATA ONBOARDING TOUR
   const tourStepsData = [
     {
-      title: "Selamat Datang di Dashboard!",
-      desc: "Alat ini dirancang khusus untuk memadukan data Iklan Meta (FB/IG) dengan komisi Shopee Affiliate Anda. Kini dilengkapi dengan Kalender Profit dan analitik canggih!",
+      title: "Selamat Datang!",
+      desc: "Alat ini memadukan data Iklan Meta dengan komisi Shopee Affiliate Anda. Mari mulai dengan mengunggah 3 file CSV Anda (Meta Ads, Komisi, dan Klik Shopee).",
       icon: <Rocket className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-orange-400 to-rose-500"
     },
     {
-      title: "1. Import 3 Data CSV",
-      desc: "Unggah file secara berurutan: Data Meta Ads, Komisi Shopee, dan Klik Shopee. Khusus Meta Ads, pastikan Anda menggunakan format 'Breakdown By Time ➔ Day'.",
-      icon: <UploadCloud className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      title: "1. Tab Dashboard Utama",
+      desc: "Setelah data terunggah, di sini Anda bisa memantau Ringkasan Performa (ROAS, GMV, Keuntungan) dan melihat Kalender Profit harian interaktif. Jangan lupa atur PPN Meta Anda!",
+      icon: <Activity className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-blue-500 to-cyan-400"
     },
     {
-      title: "2. Ringkasan & ROAS",
-      desc: "Pantau GMV, Keuntungan Bersih, dan ROAS secara real-time. Jangan lupa atur persentase PPN Meta Ads Anda agar perhitungannya akurat.",
-      icon: <BarChart2 className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      title: "2. Tab Performa Tag",
+      desc: "Kaitkan Tag Shopee dengan Campaign Meta Anda di tabel ini. Anda dapat melihat konversi per tag secara detail dan menyaring data spesifik berdasarkan tanggal.",
+      icon: <LayoutList className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-teal-400 to-emerald-500"
     },
     {
-      title: "3. Kinerja Tag & Filter",
-      desc: "Di Tabel Performa Tag, kaitkan Tag Shopee dengan Campaign Meta. Anda kini juga bisa menyaring (memfilter) tampilan tabel berdasarkan tanggal spesifik!",
-      icon: <Target className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      title: "3. Tab Analitik & Visual",
+      desc: "Visualisasikan data Anda! Pantau tren grafik harian, temukan Top 10 Tag, Top 10 Produk terlaris, hingga proporsi kategori produk Anda dengan mudah.",
+      icon: <PieChart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-indigo-500 to-violet-600"
     },
     {
-      title: "4. Kalender Profit Cerdas",
-      desc: "Pantau hari di mana Anda untung (Hijau) atau rugi (Merah). Arahkan kursor (hover) ke atas tanggal untuk melihat detail klik, pesanan, dan profit hari tersebut.",
-      icon: <Calendar className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
-      color: "from-pink-500 to-rose-600"
-    },
-    {
-      title: "5. Analitik Mendalam",
-      desc: "Pindah ke tab 'Analitik & Visual' untuk melihat grafik tren harian, Top 10 Produk Terlaris (berdasarkan Qty & Komisi), hingga distribusi Persentase Kategori Produk!",
-      icon: <PieChart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
-      color: "from-fuchsia-500 to-purple-600"
+      title: "4. Tab Export Laporan",
+      desc: "Butuh laporan bulanan atau ingin mengolah data lebih lanjut? Unduh rekap performa dalam format Excel (CSV) atau cetak langsung menjadi dokumen PDF!",
+      icon: <Download className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-fuchsia-500 to-pink-600"
     }
   ];
 
@@ -119,13 +115,12 @@ export default function App() {
     if (tourStep > 0) setTourStep(tourStep - 1);
   };
 
-  // --- FUNGSI PARSER CSV (SANGAT CEPAT & ANTI FREEZE) ---
+  // --- FUNGSI PARSER CSV ---
   const parseCSV = (file, callback) => {
     if (!file) return;
     const reader = new FileReader();
     
     reader.onload = (event) => {
-      // Menggunakan setTimeout agar UI sempat memunculkan "Loading..." sebelum CPU sibuk
       setTimeout(() => {
         try {
           const text = event.target.result;
@@ -134,7 +129,6 @@ export default function App() {
              return;
           }
 
-          // 1. Deteksi Delimiter
           const sample = text.slice(0, 2000);
           const c = (sample.match(/,/g) || []).length;
           const s = (sample.match(/;/g) || []).length;
@@ -143,7 +137,6 @@ export default function App() {
           if (s > c && s > t) delimiter = ';';
           else if (t > c && t > s) delimiter = '\t';
 
-          // 2. Pemisahan Baris Kilat (Menghindari penambahan string satu persatu yang rakus memori)
           const lines = text.split(/\r?\n/);
           const rows = [];
           let currentLineStr = '';
@@ -158,7 +151,6 @@ export default function App() {
                currentLineStr = line;
             }
 
-            // Hitung kutip ganda untuk cek baris sudah lengkap atau belum
             let quoteCount = 0;
             for (let j = 0; j < line.length; j++) {
                if (line[j] === '"') quoteCount++;
@@ -168,7 +160,6 @@ export default function App() {
                inQuotes = !inQuotes;
             }
 
-            // Jika kutipan tertutup, baris selesai dan siap diekstrak selnya
             if (!inQuotes) {
                if (currentLineStr.trim() !== '') {
                   const cells = [];
@@ -180,7 +171,7 @@ export default function App() {
                      if (char === '"') {
                         if (inCellQuotes && currentLineStr[k+1] === '"') {
                            cell += '"';
-                           k++; // Lewati ekstra kutip
+                           k++; 
                         } else {
                            inCellQuotes = !inCellQuotes;
                         }
@@ -194,7 +185,7 @@ export default function App() {
                   cells.push(cell);
                   rows.push(cells);
                }
-               currentLineStr = ''; // Reset untuk baris berikutnya
+               currentLineStr = ''; 
             }
           }
 
@@ -203,7 +194,6 @@ export default function App() {
              return;
           }
 
-          // 3. Cari Baris Header (Judul Kolom)
           let headerRowIndex = 0;
           for (let i = 0; i < Math.min(20, rows.length); i++) {
               const rowStr = rows[i].join(' ').toLowerCase();
@@ -219,10 +209,9 @@ export default function App() {
               }
           }
 
-          // 4. Translator Header
           const normalizeHeader = (rawHeader) => {
             if (!rawHeader) return '';
-            const h = rawHeader.toLowerCase().replace(/[\u200B-\u200D\uFEFF"]/g, '').trim();
+            const h = rawHeader.toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, '').replaceAll('"', '').trim();
             
             if (h === 'campaign name' || h === 'nama kampanye') return 'Campaign name';
             if (h === 'reporting starts' || h === 'awal pelaporan') return 'Reporting starts';
@@ -262,7 +251,6 @@ export default function App() {
           const headers = rows[headerRowIndex].map(normalizeHeader);
           const data = [];
 
-          // 5. Proses Baris Data
           for (let i = headerRowIndex + 1; i < rows.length; i++) {
             const rowArray = rows[i];
             if (rowArray.length === 0 || (rowArray.length === 1 && rowArray[0].trim() === '')) continue;
@@ -280,7 +268,7 @@ export default function App() {
           alert("Gagal membaca file CSV. Harap pastikan format file sudah benar.");
           setIsProcessing(false);
         }
-      }, 50); // Jeda kecil untuk merender Loading State
+      }, 50);
     };
 
     reader.onerror = () => {
@@ -295,7 +283,7 @@ export default function App() {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    setIsProcessing(true); // Tampilkan Loading Spinner
+    setIsProcessing(true);
 
     let processedCount = 0;
 
@@ -322,8 +310,6 @@ export default function App() {
 
         setter(prev => {
           const filtered = data.filter(filterFn);
-          
-          // Menggunakan metode gabungan string yang 100x lipat lebih cepat dari JSON.stringify
           const existingSet = new Set(prev.map(r => Object.values(r).join('~')));
           const uniqueNewData = filtered.filter(r => {
             const str = Object.values(r).join('~');
@@ -335,7 +321,7 @@ export default function App() {
         });
 
         processedCount++;
-        if (processedCount === files.length) setIsProcessing(false); // Sembunyikan Loading
+        if (processedCount === files.length) setIsProcessing(false);
       });
     });
     e.target.value = null; 
@@ -347,7 +333,7 @@ export default function App() {
   
   const parseNum = (val) => {
     if (!val || val === '--' || val === '-') return 0;
-    let strVal = String(val).replace(/Rp|IDR|\s|"/gi, '').trim();
+    let strVal = String(val).replace(/Rp|IDR|\s/gi, '').replaceAll('"', '').trim();
 
     if (strVal.includes(',') && strVal.includes('.')) {
       if (strVal.lastIndexOf(',') > strVal.lastIndexOf('.')) {
@@ -403,10 +389,8 @@ export default function App() {
     let max = new Date('2000-01-01');
     
     shopeeClicks.forEach(r => {
-      const dateStr = r['Waktu Klik']?.replace(' ', 'T');
-      if (!dateStr) return;
-      const d = new Date(dateStr);
-      if (!isNaN(d)) {
+      const d = getSafeDateObj(r['Waktu Klik']);
+      if (d) {
         if (d < min) min = d;
         if (d > max) max = d;
       }
@@ -426,10 +410,8 @@ export default function App() {
   const processedCommissions = useMemo(() => {
     if (!isSyncDate || !clickDateRange) return shopeeCommissions;
     return shopeeCommissions.filter(r => {
-      const dateStr = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.replace(' ', 'T');
-      if (!dateStr) return true;
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return true;
+      const d = getSafeDateObj(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (!d) return true;
       return d >= clickDateRange.min; 
     });
   }, [shopeeCommissions, isSyncDate, clickDateRange]);
@@ -439,14 +421,11 @@ export default function App() {
     
     if (isSyncDate && clickDateRange) {
       filtered = filtered.filter(r => {
-        const startStr = r['Reporting starts'];
-        const endStr = r['Reporting ends'];
-        if (!startStr || startStr === '--') return true;
+        const startD = getSafeDateObj(r['Reporting starts']);
+        if (!startD) return true;
         
-        const startD = new Date(startStr);
-        if (isNaN(startD.getTime())) return true;
+        const endD = getSafeDateObj(r['Reporting ends']) || startD;
 
-        const endD = endStr && endStr !== '--' ? new Date(endStr) : new Date(startStr);
         startD.setHours(0,0,0,0);
         endD.setHours(23,59,59,999);
         
@@ -516,16 +495,16 @@ export default function App() {
   const availableSummaryDates = useMemo(() => {
     const dates = new Set();
     shopeeClicks.forEach(r => {
-      const d = r['Waktu Klik']?.split(' ')[0];
-      if (d && d !== '--' && !isNaN(new Date(d).getTime())) dates.add(d);
+      const d = extractDateOnly(r['Waktu Klik']);
+      if (d) dates.add(d);
     });
     processedCommissions.forEach(r => {
-      const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
-      if (d && d !== '--' && !isNaN(new Date(d).getTime())) dates.add(d);
+      const d = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (d) dates.add(d);
     });
     processedMetaAds.forEach(r => {
-      const d = r['Reporting starts'];
-      if (d && d !== '--' && !isNaN(new Date(d).getTime())) dates.add(d);
+      const d = extractDateOnly(r['Reporting starts']);
+      if (d) dates.add(d);
     });
     return Array.from(dates).sort((a, b) => new Date(b) - new Date(a));
   }, [shopeeClicks, processedCommissions, processedMetaAds]);
@@ -542,14 +521,14 @@ export default function App() {
     const processedOrdersComm = {};
 
     shopeeClicks.forEach(r => {
-      const d = r['Waktu Klik']?.split(' ')[0];
+      const d = extractDateOnly(r['Waktu Klik']);
       if (summaryDateFilter === 'all' || d === summaryDateFilter) {
         clicks += 1;
       }
     });
 
     processedCommissions.forEach(r => {
-      const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
+      const d = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
       if (summaryDateFilter === 'all' || d === summaryDateFilter) {
         const orderId = r['ID Pemesanan'];
         if (orderId) orderIdsSet.add(orderId);
@@ -578,7 +557,7 @@ export default function App() {
     });
 
     processedMetaAds.forEach(r => {
-      const d = r['Reporting starts'];
+      const d = extractDateOnly(r['Reporting starts']);
       if (summaryDateFilter === 'all' || d === summaryDateFilter) {
         adSpent += parseNum(r['Amount spent (IDR)']);
         metaResults += parseNum(r['Results']);
@@ -595,15 +574,15 @@ export default function App() {
     const ppnMultiplier = 1 + (ppnPercentage / 100);
     
     shopeeClicks.forEach(r => {
-      const d = r['Waktu Klik']?.split(' ')[0];
-      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      const d = extractDateOnly(r['Waktu Klik']);
+      if (!d) return;
       if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       map[d].shopeeClicks += 1;
     });
 
     processedCommissions.forEach(r => {
-      const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
-      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      const d = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (!d) return;
       if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       
       const orderId = r['ID Pemesanan'];
@@ -625,8 +604,8 @@ export default function App() {
     });
 
     processedMetaAds.forEach(r => {
-      const d = r['Reporting starts'];
-      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      const d = extractDateOnly(r['Reporting starts']);
+      if (!d) return;
       if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       map[d].spend += parseNum(r['Amount spent (IDR)']) * ppnMultiplier; 
       map[d].metaClicks += parseNum(r['Results']);
@@ -669,8 +648,10 @@ export default function App() {
   useEffect(() => {
     if (availableMonths.length > 0 && !selectedMonth) {
       setSelectedMonth(availableMonths[0]);
+      setExportMonth(availableMonths[0]);
     } else if (availableMonths.length > 0 && !availableMonths.includes(selectedMonth)) {
       setSelectedMonth(availableMonths[0]);
+      setExportMonth(availableMonths[0]);
     }
   }, [availableMonths, selectedMonth]);
 
@@ -705,7 +686,6 @@ export default function App() {
     return days;
   }, [selectedMonth, dailySummaryTrend]);
 
-  // --- LOGIC RINGKASAN DATA BULANAN KALENDER ---
   const monthlySummary = useMemo(() => {
     let spend = 0;
     let gmv = 0;
@@ -729,7 +709,6 @@ export default function App() {
   const aggregatedTags = useMemo(() => {
     const tagsMap = {};
 
-    // 1. Inisialisasi daftar Tag dari data mentah agar tidak hilang di tabel saat tanggal difilter
     shopeeClicks.forEach(r => {
       let tag = r['Tag_link'];
       if (tag === undefined || tag === null) return;
@@ -748,28 +727,26 @@ export default function App() {
       }
     });
 
-    // 2. Kumpulkan metrik berdasarkan filter tanggal (jika diterapkan)
     shopeeClicks.forEach(row => {
-      const d = row['Waktu Klik']?.split(' ')[0];
+      const d = extractDateOnly(row['Waktu Klik']);
       if (tagTableDateFilter !== 'all' && d !== tagTableDateFilter) return;
 
       let tag = row['Tag_link'];
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, ''); 
       
-      // Keamanan tambahan
       if (!tagsMap[tag]) {
          tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
       }
       
       tagsMap[tag].clicks += 1;
 
-      const clickTimeStr = row['Waktu Klik']?.replace(' ', 'T');
-      if (clickTimeStr) tagsMap[tag].clickTimes.push(new Date(clickTimeStr).getTime());
+      const clickTime = getSafeDateObj(row['Waktu Klik']);
+      if (clickTime) tagsMap[tag].clickTimes.push(clickTime.getTime());
     });
 
     processedCommissions.forEach(row => {
-      const d = (row['Waktu Pemesanan'] || row['Waktu Klik'])?.split(' ')[0];
+      const d = extractDateOnly(row['Waktu Pemesanan'] || row['Waktu Klik']);
       if (tagTableDateFilter !== 'all' && d !== tagTableDateFilter) return;
 
       let tag = row['Tag_link1'];
@@ -800,17 +777,13 @@ export default function App() {
         }
       }
 
-      const orderTimeStr = row['Waktu Pemesanan']?.replace(' ', 'T');
-      const commClickTimeStr = row['Waktu Klik']?.replace(' ', 'T');
+      const orderTime = getSafeDateObj(row['Waktu Pemesanan']);
+      const commClickTime = getSafeDateObj(row['Waktu Klik']);
 
-      if (orderTimeStr) tagsMap[tag].orderTimes.push(new Date(orderTimeStr).getTime());
+      if (orderTime) tagsMap[tag].orderTimes.push(orderTime.getTime());
 
-      if (orderTimeStr && commClickTimeStr) {
-        const tOrder = new Date(orderTimeStr).getTime();
-        const tClick = new Date(commClickTimeStr).getTime();
-        if (!isNaN(tOrder) && !isNaN(tClick)) {
-          tagsMap[tag].timeDiffs.push(tOrder - tClick);
-        }
+      if (orderTime && commClickTime) {
+        tagsMap[tag].timeDiffs.push(orderTime.getTime() - commClickTime.getTime());
       }
     });
 
@@ -836,7 +809,7 @@ export default function App() {
       const linkedCampaigns = tagMappings[tag] || [];
       
       const linkedAdsData = processedMetaAds.filter(ad => {
-        const adDate = ad['Reporting starts'];
+        const adDate = extractDateOnly(ad['Reporting starts']);
         if (tagTableDateFilter !== 'all' && adDate !== tagTableDateFilter) return false;
         return linkedCampaigns.includes(ad['Campaign name']);
       });
@@ -923,8 +896,8 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       if (tag !== selectedTagForModal) return;
 
-      const dateStr = r['Waktu Klik']?.split(' ')[0];
-      if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
+      const dateStr = extractDateOnly(r['Waktu Klik']);
+      if (!dateStr) return;
       
       if (!dailyMap[dateStr]) dailyMap[dateStr] = { date: dateStr, sClicks: 0, orderIdsSet: new Set(), sComm: 0, sGmv: 0, mSpent: 0, mClicks: 0, mResults: 0, addedOrdersComm: {} };
       dailyMap[dateStr].sClicks += 1;
@@ -936,8 +909,8 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       if (tag !== selectedTagForModal) return;
 
-      const dateStr = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
-      if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
+      const dateStr = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (!dateStr) return;
 
       if (!dailyMap[dateStr]) dailyMap[dateStr] = { date: dateStr, sClicks: 0, orderIdsSet: new Set(), sComm: 0, sGmv: 0, mSpent: 0, mClicks: 0, mResults: 0, addedOrdersComm: {} };
       
@@ -962,9 +935,8 @@ export default function App() {
     const linked = tagMappings[selectedTagForModal] || [];
     processedMetaAds.forEach(r => {
       if (!linked.includes(r['Campaign name'])) return;
-      const dateStr = r['Reporting starts'];
-      
-      if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
+      const dateStr = extractDateOnly(r['Reporting starts']);
+      if (!dateStr) return;
 
       if (!dailyMap[dateStr]) dailyMap[dateStr] = { date: dateStr, sClicks: 0, orderIdsSet: new Set(), sComm: 0, mSpent: 0, mClicks: 0, mResults: 0, addedOrdersComm: {} };
       dailyMap[dateStr].mSpent += parseNum(r['Amount spent (IDR)']);
@@ -982,9 +954,8 @@ export default function App() {
   const dailyTrend = useMemo(() => {
     const trendMap = {};
     processedCommissions.forEach(r => {
-      const dateStr = r['Waktu Pemesanan']?.split(' ')[0] || r['Waktu Klik']?.split(' ')[0];
-      
-      if (!dateStr || dateStr === '--' || isNaN(new Date(dateStr).getTime())) return;
+      const dateStr = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (!dateStr) return;
 
       if (!trendMap[dateStr]) trendMap[dateStr] = { date: dateStr, orderIdsSet: new Set(), commission: 0, addedOrdersComm: {} };
       
@@ -1126,8 +1097,8 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       if (tag !== currentChartTag) return;
 
-      const d = r['Waktu Klik']?.split(' ')[0];
-      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      const d = extractDateOnly(r['Waktu Klik']);
+      if (!d) return;
       if (!map[d]) map[d] = { date: d, clicks: 0, orderIdsSet: new Set() };
       map[d].clicks += 1;
     });
@@ -1138,8 +1109,8 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       if (tag !== currentChartTag) return;
 
-      const d = (r['Waktu Pemesanan'] || r['Waktu Klik'])?.split(' ')[0];
-      if (!d || d === '--' || isNaN(new Date(d).getTime())) return;
+      const d = extractDateOnly(r['Waktu Pemesanan'] || r['Waktu Klik']);
+      if (!d) return;
       if (!map[d]) map[d] = { date: d, clicks: 0, orderIdsSet: new Set() };
       
       const orderId = r['ID Pemesanan'];
@@ -1198,6 +1169,179 @@ export default function App() {
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
+  // --- FUNGSI GENERATE EXPORT Laporan ---
+  const getExportData = () => {
+    let title = '';
+    let headers = [];
+    let rows = [];
+    let totalRow = [];
+
+    if (exportType === 'profit') {
+      title = `Rekap Profit Harian - ${formatMonthYear(exportMonth)}`;
+      headers = ['Tanggal', 'Klik Meta', 'Klik Shopee', 'Pesanan', 'GMV (Rp)', 'Ad Spend (Rp)', 'Komisi (Rp)', 'Profit (Rp)', 'ROAS'];
+      
+      let tMetaC = 0, tShopeeC = 0, tOrders = 0, tGmv = 0, tSpend = 0, tComm = 0, tProfit = 0;
+      
+      dailySummaryTrend.filter(d => d.date.startsWith(exportMonth)).forEach(d => {
+        const spend = d.spend;
+        const profit = d.commission - spend;
+        const roas = spend > 0 ? (profit / spend) : (profit > 0 ? '∞' : 0);
+        
+        tMetaC += d.metaClicks || 0;
+        tShopeeC += d.shopeeClicks || 0;
+        tOrders += d.shopeeOrders || 0;
+        tGmv += d.gmv || 0;
+        tSpend += spend || 0;
+        tComm += d.commission || 0;
+        tProfit += profit || 0;
+
+        rows.push([
+          formatDate(new Date(d.date)),
+          formatNumber(d.metaClicks || 0),
+          formatNumber(d.shopeeClicks || 0),
+          formatNumber(d.shopeeOrders || 0),
+          formatCurrency(d.gmv || 0),
+          formatCurrency(spend),
+          formatCurrency(d.commission),
+          formatCurrency(profit),
+          roas === '∞' ? '∞' : `${roas.toFixed(2)}x`
+        ]);
+      });
+
+      const totalRoas = tSpend > 0 ? (tProfit / tSpend) : (tProfit > 0 ? '∞' : 0);
+      totalRow = [
+        'TOTAL BULAN INI',
+        formatNumber(tMetaC),
+        formatNumber(tShopeeC),
+        formatNumber(tOrders),
+        formatCurrency(tGmv),
+        formatCurrency(tSpend),
+        formatCurrency(tComm),
+        formatCurrency(tProfit),
+        totalRoas === '∞' ? '∞' : `${totalRoas.toFixed(2)}x`
+      ];
+
+    } else if (exportType === 'meta') {
+      title = `Laporan Iklan Meta Harian - ${formatMonthYear(exportMonth)}`;
+      headers = ['Tanggal', 'Biaya Iklan (Rp)', 'Impresi', 'Klik Tautan', 'Hasil', 'Avg CPC (Rp)', 'Avg CTR (%)'];
+      
+      const map = {};
+      const ppnMultiplier = 1 + (ppnPercentage / 100);
+      
+      processedMetaAds.filter(r => r['Reporting starts'] && r['Reporting starts'].startsWith(exportMonth)).forEach(r => {
+         const d = r['Reporting starts'];
+         if(!map[d]) map[d] = { spent: 0, impressions: 0, clicks: 0, results: 0 };
+         map[d].spent += parseNum(r['Amount spent (IDR)']) * ppnMultiplier;
+         map[d].impressions += parseNum(r['Impressions']);
+         map[d].clicks += parseNum(r['Link clicks']);
+         map[d].results += parseNum(r['Results']);
+      });
+
+      let tSpend = 0, tImp = 0, tClicks = 0, tRes = 0;
+
+      Object.entries(map).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB)).forEach(([date, d]) => {
+         const cpc = d.results > 0 ? d.spent / d.results : (d.clicks > 0 ? d.spent / d.clicks : 0);
+         const ctr = d.impressions > 0 ? (d.clicks / d.impressions) * 100 : 0;
+         
+         tSpend += d.spent; tImp += d.impressions; tClicks += d.clicks; tRes += d.results;
+
+         rows.push([
+           formatDate(new Date(date)),
+           formatCurrency(d.spent),
+           formatNumber(d.impressions),
+           formatNumber(d.clicks),
+           formatNumber(d.results),
+           formatCurrency(cpc),
+           `${ctr.toFixed(2)}%`
+         ]);
+      });
+
+      const tCpc = tRes > 0 ? tSpend / tRes : (tClicks > 0 ? tSpend / tClicks : 0);
+      const tCtr = tImp > 0 ? (tClicks / tImp) * 100 : 0;
+      totalRow = [
+        'TOTAL BULAN INI',
+        formatCurrency(tSpend),
+        formatNumber(tImp),
+        formatNumber(tClicks),
+        formatNumber(tRes),
+        formatCurrency(tCpc),
+        `${tCtr.toFixed(2)}%`
+      ];
+    }
+
+    return { title, headers, rows, totalRow };
+  };
+
+  const handleExportCSV = () => {
+    const { title, headers, rows, totalRow } = getExportData();
+    if (rows.length === 0) return alert('Tidak ada data untuk diekspor pada bulan ini.');
+
+    const csvContent = "\uFEFF" + [
+      headers.map(h => `"${h}"`).join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')),
+      totalRow.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${title.replaceAll(' ', '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPDF = () => {
+    const { title, headers, rows, totalRow } = getExportData();
+    if (rows.length === 0) return alert('Tidak ada data untuk diekspor pada bulan ini.');
+
+    const printWindow = window.open('', '_blank');
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #1e293b; line-height: 1.5; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+            h2 { margin: 0 0 5px 0; font-size: 24px; color: #0f172a; }
+            p { margin: 0; color: #64748b; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: right; }
+            th { background-color: #f1f5f9; font-weight: bold; color: #334155; text-align: center; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+            td:first-child, th:first-child { text-align: left; }
+            .total-row td { font-weight: 900; background-color: #f8fafc; border-top: 2px solid #94a3b8; }
+            .footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+            @media print {
+              body { padding: 0; }
+              @page { size: landscape; margin: 1cm; }
+            }
+          </style>
+        </head>
+        <body onload="setTimeout(function(){ window.print(); window.close(); }, 500)">
+          <div class="header">
+            <h2>${title}</h2>
+            <p>Laporan Resmi Shopee Affiliate x Meta Dashboard</p>
+          </div>
+          <table>
+            <thead>
+              <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `<tr>${row.map((cell, i) => `<td style="${i===0 ? 'text-align:left;':''}">${cell}</td>`).join('')}</tr>`).join('')}
+              <tr class="total-row">${totalRow.map((cell, i) => `<td style="${i===0 ? 'text-align:left;':''}">${cell}</td>`).join('')}</tr>
+            </tbody>
+          </table>
+          <div class="footer">Diekspor pada: ${new Date().toLocaleString('id-ID')} | Dibuat menggunakan Performance Dashboard by Slow Living Affiliate</div>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   return (
     <div className="min-h-screen bg-[#f3f4f8] font-sans text-slate-800 pb-12 relative selection:bg-violet-200">
       
@@ -1211,7 +1355,7 @@ export default function App() {
               <UploadCloud className="absolute inset-0 m-auto text-violet-600 w-6 h-6 animate-pulse" />
             </div>
             <h3 className="text-xl font-black text-slate-900 mb-2">Memproses File CSV...</h3>
-            <p className="text-sm font-medium text-slate-500">Membaca ribuan baris data membutuhkan waktu beberapa saat. Harap tunggu.</p>
+            <p className="text-sm font-medium text-slate-500">Membaca baris data membutuhkan waktu beberapa saat. Harap tunggu.</p>
           </div>
         </div>
       )}
@@ -1249,14 +1393,12 @@ export default function App() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-10">
-                {/* Indikator Titik (Dots) */}
                 <div className="flex gap-2">
                   {tourStepsData.map((_, i) => (
                     <div key={i} className={`h-2.5 rounded-full transition-all duration-300 ${i === tourStep ? 'w-8 bg-violet-600' : 'w-2.5 bg-slate-200'}`} />
                   ))}
                 </div>
                 
-                {/* Tombol Navigasi */}
                 <div className="flex gap-3 w-full sm:w-auto">
                   {tourStep > 0 && (
                     <button onClick={handlePrevTour} className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
@@ -1465,7 +1607,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
             
             {/* Upload Box 1: Meta Ads */}
-            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${metaAds.length > 0 ? 'bg-blue-50/50 border-2 border-blue-400 shadow-md shadow-blue-100' : 'bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/30 hover:shadow-lg'}`}>
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${metaAds.length > 0 ? 'bg-blue-50/50 border-2 border-blue-400 shadow-md shadow-blue-100' : 'bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-blue-50/30 hover:shadow-lg'}`}>
               {metaAds.length > 0 && (
                 <button onClick={() => setMetaAds([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full shadow-sm transition-colors z-20 focus:outline-none">
                   <X size={16} className="stroke-[3]" />
@@ -1591,393 +1733,361 @@ export default function App() {
           </div>
         )}
 
-        {/* SECTION 3: RINGKASAN TOTAL DENGAN GRADIENT CARDS */}
-        <div id="step-summary" className={`bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200/60 flex flex-col gap-6 transition-all duration-500 ${(shopeeClicks.length === 0 && shopeeCommissions.length === 0 && processedMetaAds.length === 0) ? 'opacity-50 grayscale-[50%]' : ''}`}>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
-            <div className="flex items-center gap-3">
-              <div className="bg-slate-100 p-2 rounded-xl text-slate-700"><BarChart2 size={24} /></div>
-              <h2 className="text-xl font-black text-slate-900">Ringkasan Performa Keseluruhan</h2>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-20">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 font-bold">PPN Meta:</span>
-                <div className="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-200 w-24 shadow-inner transition-all">
-                  <input
-                    type="number"
-                    className="w-full bg-transparent text-sm text-slate-800 outline-none text-center font-black"
-                    value={ppnPercentage}
-                    onChange={(e) => setPpnPercentage(Number(e.target.value) || 0)}
-                  />
-                  <span className="text-sm text-slate-400 font-bold">%</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 font-bold hidden sm:block">Filter:</span>
-                <select
-                  className="text-sm border border-slate-300 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 bg-white shadow-sm font-bold text-slate-800 min-w-[220px] cursor-pointer"
-                  value={summaryDateFilter}
-                  onChange={(e) => setSummaryDateFilter(e.target.value)}
-                >
-                  <option value="all">Semua Waktu (Keseluruhan)</option>
-                  {availableSummaryDates.map(date => (
-                    <option key={date} value={date}>{formatDate(new Date(date))}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pt-2">
-            
-            {/* KPI CARD: Klik Meta */}
-            <div className="bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><Target size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Klik Meta</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.metaResults)}>{formatNumber(summaryData.metaResults)}</h3>
-            </div>
-
-            {/* KPI CARD: Klik Shopee */}
-            <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-orange-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><MousePointerClick size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Klik Shopee</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><MousePointerClick size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.clicks)}>{formatNumber(summaryData.clicks)}</h3>
-            </div>
-            
-            {/* KPI CARD: Orders */}
-            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><ShoppingCart size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Total Pesanan</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingCart size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.orders)}>{formatNumber(summaryData.orders)}</h3>
-            </div>
-            
-            {/* KPI CARD: Produk Terjual */}
-            <div className="bg-gradient-to-br from-cyan-400 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-teal-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><Package size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Produk Terjual</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Package size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.produkTerjual)}>{formatNumber(summaryData.produkTerjual)}</h3>
-            </div>
-            
-            {/* KPI CARD: GMV */}
-            <div className="bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-rose-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><ShoppingBag size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Total GMV</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingBag size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.gmv)}>{formatCurrency(summaryData.gmv)}</h3>
-            </div>
-
-            {/* KPI CARD: Commission */}
-            <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-emerald-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><DollarSign size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Total Komisi</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><DollarSign size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.commission)}>{formatCurrency(summaryData.commission)}</h3>
-            </div>
-
-            {/* KPI CARD: Spend */}
-            <div className="bg-gradient-to-br from-violet-400 to-purple-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-violet-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
-              <div className="absolute -right-4 -top-4 opacity-20"><Activity size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90 leading-tight">Ad Spend<br/><span className="text-[10px] font-medium opacity-80">(+PPN {ppnPercentage}%)</span></p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.totalSpentWithPpn)}>{formatCurrency(summaryData.totalSpentWithPpn)}</h3>
-            </div>
-
-            {/* KPI CARD: Profit Dinamis */}
-            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
-              <div className="absolute -right-4 -top-4 opacity-10"><TrendingUp size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">Keuntungan Bersih</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><TrendingUp size={18} /></div>
-              </div>
-              <h3 className={`text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate ${summaryProfit >= 0 ? 'text-emerald-400' : 'text-white'}`} title={formatCurrency(summaryProfit)}>
-                {formatCurrency(summaryProfit)}
-              </h3>
-            </div>
-
-            {/* KPI CARD: ROI */}
-            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
-              <div className="absolute -right-4 -top-4 opacity-10"><Target size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">ROI</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoi}>{summaryRoi}</h3>
-            </div>
-
-            {/* KPI CARD: ROAS */}
-            <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-fuchsia-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
-              <div className="absolute -right-4 -top-4 opacity-10"><Activity size={80} /></div>
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <p className="text-sm font-bold text-white/90">ROAS</p>
-                <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
-              </div>
-              <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoas}>{summaryRoas}</h3>
-            </div>
-
-          </div>
-
-          {/* KALENDER PROFIT HARIAN */}
-          {dailySummaryTrend.length > 0 && (
-            <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-top-4 duration-700">
-              <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 flex flex-col animate-in slide-in-from-bottom-4 duration-500 delay-100 relative z-20">
-                <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white rounded-t-3xl relative z-10">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3.5 rounded-2xl text-white shadow-lg shadow-violet-500/30 shrink-0">
-                      <Calendar size={28} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black text-slate-900 tracking-tight">Kalender Profit Harian</h2>
-                      <p className="text-sm font-medium text-slate-500 mt-1">Detail performa harian: Komisi vs Pengeluaran Iklan.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
-                     {selectedMonth && availableMonths.length > 0 && (
-                        <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-inner w-full sm:w-auto overflow-x-auto shrink-0">
-                           <div className="px-4 py-2 flex flex-col">
-                             <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Ad Spend</span>
-                             <span className="text-sm font-black text-rose-500 whitespace-nowrap">{formatCurrency(monthlySummary.spend)}</span>
-                           </div>
-                           <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
-                           <div className="px-4 py-2 flex flex-col">
-                             <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Komisi</span>
-                             <span className="text-sm font-black text-emerald-500 whitespace-nowrap">{formatCurrency(monthlySummary.commission)}</span>
-                           </div>
-                           <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
-                           <div className={`px-5 py-2 flex flex-col rounded-xl shadow-sm shrink-0 ${monthlySummary.profit >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
-                             <span className="text-[10px] text-white/80 uppercase font-black tracking-wider whitespace-nowrap">Net Profit</span>
-                             <span className="text-sm font-black whitespace-nowrap">{formatCurrency(monthlySummary.profit)}</span>
-                           </div>
-                        </div>
-                     )}
-                     <select
-                        className="text-sm border-2 border-slate-200 rounded-xl px-5 py-4 md:py-3 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-black text-slate-700 shadow-sm cursor-pointer bg-white transition-all w-full md:w-auto shrink-0"
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                      >
-                        {availableMonths.map(m => <option key={m} value={m}>{formatMonthYear(m)}</option>)}
-                        {availableMonths.length === 0 && <option value="" disabled>Belum ada data</option>}
-                      </select>
-                  </div>
-                </div>
-
-                <div className="p-4 sm:p-6 bg-slate-50/30 rounded-b-3xl">
-                   {availableMonths.length === 0 ? (
-                      <div className="text-center py-16 flex flex-col items-center justify-center">
-                         <Calendar size={48} className="text-slate-300 mb-4" />
-                         <p className="text-slate-500 font-bold text-lg">Unggah data CSV untuk melihat kalender profit.</p>
-                      </div>
-                   ) : (
-                      <div className="grid grid-cols-7 gap-3 sm:gap-5 relative">
-                        {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map(day => (
-                          <div key={day} className="text-center font-black text-slate-400 text-[10px] sm:text-xs py-3 uppercase tracking-widest bg-white rounded-xl shadow-sm border border-slate-100">{day.substring(0, 3)}</div>
-                        ))}
-                        
-                        {calendarDays.map((cDay, i) => {
-                          if (!cDay) return <div key={`empty-${i}`} className="p-2 sm:p-4 rounded-2xl border border-transparent"></div>;
-
-                          let colorClass = 'text-slate-900';
-                          let bgClass = 'bg-white border-slate-200 hover:border-slate-300';
-                          let profitBg = 'bg-slate-100 text-slate-600';
-
-                          if (cDay.hasData) {
-                            if (cDay.profit > 0) {
-                              colorClass = 'text-emerald-700';
-                              bgClass = 'bg-emerald-50/40 border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-500/10';
-                              profitBg = 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm';
-                            } else if (cDay.profit < 0) {
-                              colorClass = 'text-rose-700';
-                              bgClass = 'bg-rose-50/40 border-rose-200 hover:border-rose-400 hover:shadow-rose-500/10';
-                              profitBg = 'bg-rose-100 text-rose-700 border border-rose-200 shadow-sm';
-                            } else {
-                              colorClass = 'text-slate-800';
-                              bgClass = 'bg-white border-slate-200 hover:border-slate-400 hover:shadow-slate-500/10';
-                              profitBg = 'bg-slate-100 text-slate-700 border border-slate-200 shadow-sm';
-                            }
-                          }
-
-                          const isFirstRow = i < 7; 
-                          const dayOfWeek = i % 7;
-
-                          let yPos = isFirstRow ? "top-full mt-3" : "bottom-full mb-3";
-                          let originY = isFirstRow ? "origin-top" : "origin-bottom";
-
-                          let xPos = "left-1/2 -translate-x-1/2";
-                          let originX = "";
-
-                          if (dayOfWeek === 0 || dayOfWeek === 1) { 
-                            xPos = "left-0";
-                            originX = "-left";
-                          } else if (dayOfWeek === 5 || dayOfWeek === 6) { 
-                            xPos = "right-0";
-                            originX = "-right";
-                          }
-
-                          const tooltipPosClass = `${yPos} ${xPos} ${originY}${originX}`;
-
-                          return (
-                            <div key={i} className={`flex flex-col p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl relative group hover:z-50 min-h-[100px] sm:min-h-[135px] cursor-pointer ${bgClass}`}>
-                               <div className="flex justify-between items-start mb-2">
-                                 <span className={`text-base sm:text-xl font-black ${cDay.hasData ? colorClass : 'text-slate-400'}`}>{cDay.day}</span>
-                                 {cDay.hasData && cDay.profit > 0 && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>}
-                                 {cDay.hasData && cDay.profit < 0 && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>}
-                               </div>
-                               
-                               {cDay.hasData && (
-                                 <div className="flex flex-col h-full justify-end gap-2 mt-auto">
-                                   <div className={`px-1 sm:px-2 py-1.5 rounded-lg text-center ${profitBg}`}>
-                                     <span className="block text-[10px] sm:text-xs font-black truncate">
-                                       {cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}
-                                     </span>
-                                   </div>
-                                   
-                                   <div className="hidden sm:flex flex-col gap-1 border-t border-slate-300/60 pt-2 mt-1">
-                                     <div className="flex justify-between items-center text-[9px] font-bold">
-                                       <span className="text-slate-400 uppercase tracking-widest">Spnd</span>
-                                       <span className="text-rose-500 truncate pl-1" title={formatCurrency(cDay.spend)}>{formatCurrency(cDay.spend)}</span>
-                                     </div>
-                                     <div className="flex justify-between items-center text-[9px] font-bold">
-                                       <span className="text-slate-400 uppercase tracking-widest">Comm</span>
-                                       <span className="text-emerald-600 truncate pl-1" title={formatCurrency(cDay.commission)}>{formatCurrency(cDay.commission)}</span>
-                                     </div>
-                                   </div>
-                                 </div>
-                               )}
-                               
-                               {cDay.hasData && (
-                                  <div className={`absolute ${tooltipPosClass} hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-xl text-white text-[10px] p-3.5 rounded-2xl w-48 z-[100] shadow-2xl border border-slate-700 pointer-events-none scale-0 group-hover:scale-100 transition-transform duration-200 ease-out`}>
-                                    <div className="font-black text-xs border-b border-slate-700/80 pb-1.5 mb-2 text-center text-white">{formatDate(new Date(cDay.dateStr))}</div>
-                                    
-                                    <div className="flex justify-between items-center mb-1.5">
-                                      <span className="text-slate-400 font-medium">Meta Klik/Order</span>
-                                      <span className="font-bold"><span className="text-sky-400">{formatNumber(cDay.metaClicks)}</span> <span className="text-slate-600">|</span> <span className="text-orange-400">{formatNumber(cDay.shopeeOrders)}</span></span>
-                                    </div>
-                                    
-                                    <div className="flex justify-between items-center mb-1.5">
-                                      <span className="text-slate-400 font-medium">Ad Spend</span>
-                                      <span className="font-bold text-rose-400">{formatCurrency(cDay.spend)}</span>
-                                    </div>
-                                    
-                                    <div className="flex justify-between items-center mb-1.5">
-                                      <span className="text-slate-400 font-medium">Komisi</span>
-                                      <span className="font-bold text-emerald-400">{formatCurrency(cDay.commission)}</span>
-                                    </div>
-                                    
-                                    <div className="flex justify-between items-center mb-2.5 border-b border-slate-700/80 pb-2">
-                                      <span className="text-slate-400 font-medium">GMV</span>
-                                      <span className="font-bold text-slate-300">{formatCurrency(cDay.gmv)}</span>
-                                    </div>
-                                    
-                                    <div className={`flex justify-between items-center bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/5 ${cDay.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                      <span className="font-black uppercase tracking-widest text-[9px]">{cDay.profit >= 0 ? 'Profit' : 'Rugi'}</span>
-                                      <span className="font-black text-xs">{cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}</span>
-                                    </div>
-                                  </div>
-                               )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                   )}
-                </div>
-              </div>
-            </div>
-          )}
+        {/* TAB NAVIGATION BAWAH - MODERN GLASSMORPHISM STYLE */}
+        <div className="flex flex-wrap justify-center sm:justify-start gap-2 bg-white/60 backdrop-blur-xl p-2.5 rounded-[2rem] sm:rounded-full w-full sm:w-fit mt-4 mb-8 shadow-xl shadow-slate-200/40 border border-white/80 relative z-20 mx-auto sm:mx-0">
+          <button 
+            onClick={() => setActiveTab('dashboard')} 
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'dashboard' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02] sm:scale-105 ring-2 ring-slate-900/10' : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'}`}
+          >
+            <Activity size={18} className={activeTab === 'dashboard' ? 'text-violet-400' : 'opacity-70'} /> 
+            <span className="whitespace-nowrap">Dashboard</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('table')} 
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'table' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02] sm:scale-105 ring-2 ring-slate-900/10' : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'}`}
+          >
+            <LayoutList size={18} className={activeTab === 'table' ? 'text-orange-400' : 'opacity-70'} /> 
+            <span className="whitespace-nowrap">Performa Tag</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('charts')} 
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'charts' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02] sm:scale-105 ring-2 ring-slate-900/10' : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'}`}
+          >
+            <LineChart size={18} className={activeTab === 'charts' ? 'text-blue-400' : 'opacity-70'} /> 
+            <span className="whitespace-nowrap">Analitik & Visual</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('export')} 
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'export' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02] sm:scale-105 ring-2 ring-slate-900/10' : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'}`}
+          >
+            <Download size={18} className={activeTab === 'export' ? 'text-emerald-400' : 'opacity-70'} /> 
+            <span className="whitespace-nowrap">Export Laporan</span>
+          </button>
         </div>
 
-        {/* SECTION 4: TABEL META ADS (DISEMBUNYIKAN) */}
-        {processedMetaAds.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => setShowMetaAdsTable(!showMetaAdsTable)}
-              className="self-start flex items-center gap-2 px-5 py-3 bg-white border border-slate-200/60 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md"
-            >
-              <BarChart3 size={20} className={showMetaAdsTable ? "text-slate-400" : "text-violet-600"} />
-              {showMetaAdsTable ? 'Sembunyikan Daftar Campaign Meta Ads' : `Lihat Daftar Campaign Meta Ads (${processedMetaAds.length} Data)`}
-            </button>
-
-            {showMetaAdsTable && (
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden animate-in slide-in-from-top-4 duration-300">
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-violet-100 p-2 rounded-xl text-violet-600"><BarChart3 size={20} /></div>
-                    <h2 className="text-lg font-black text-slate-800">Daftar Campaign Meta Ads</h2>
-                  </div>
-                  {isSyncDate && clickDateRange && <span className="text-[11px] font-bold bg-violet-100 text-violet-800 px-3 py-1.5 rounded-lg border border-violet-200">Difilter sesuai tanggal klik</span>}
+        {/* TAB 1: DASHBOARD (Menyatukan Ringkasan & Kalender) */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+            {/* SECTION: RINGKASAN TOTAL DENGAN GRADIENT CARDS */}
+            <div id="step-summary" className={`bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200/60 flex flex-col gap-6 transition-all duration-500 ${(shopeeClicks.length === 0 && shopeeCommissions.length === 0 && processedMetaAds.length === 0) ? 'opacity-50 grayscale-[50%]' : ''}`}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-100 p-2 rounded-xl text-slate-700"><BarChart2 size={24} /></div>
+                  <h2 className="text-xl font-black text-slate-900">Ringkasan Performa Keseluruhan</h2>
                 </div>
-                <div className="overflow-x-auto max-h-72">
-                  <table className="min-w-full text-sm text-left">
-                    <thead className="bg-slate-800 text-slate-200 font-bold sticky top-0 shadow-sm z-20">
-                      <tr>
-                        <th className="px-6 py-4 border-r border-slate-700">Campaign Name</th>
-                        <th className="px-6 py-4 border-r border-slate-700">Total Hari Aktif</th>
-                        <th className="px-6 py-4 border-r border-slate-700">Status Terakhir</th>
-                        <th className="px-6 py-4">Biaya Iklan</th>
-                        <th className="px-6 py-4">Hasil Klik</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {aggregatedMetaAdsSummary.map((ad, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 font-bold text-slate-800 border-r border-slate-100">{ad.name}</td>
-                          <td className="px-6 py-4 font-medium text-slate-600 border-r border-slate-100">{ad.days} Hari</td>
-                          <td className="px-6 py-4 border-r border-slate-100">
-                            <span className={`px-3 py-1 rounded-lg text-[11px] font-black tracking-wider uppercase border ${ad.status === 'inactive' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                              {ad.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 font-bold text-slate-700">{formatCurrency(ad.spent)}</td>
-                          <td className="px-6 py-4 font-bold text-slate-700">{formatNumber(ad.results)}</td>
-                        </tr>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-20">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500 font-bold">PPN Meta:</span>
+                    <div className="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-200 w-24 shadow-inner transition-all">
+                      <input
+                        type="number"
+                        className="w-full bg-transparent text-sm text-slate-800 outline-none text-center font-black"
+                        value={ppnPercentage}
+                        onChange={(e) => setPpnPercentage(Number(e.target.value) || 0)}
+                      />
+                      <span className="text-sm text-slate-400 font-bold">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500 font-bold hidden sm:block">Filter:</span>
+                    <select
+                      className="text-sm border border-slate-300 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 bg-white shadow-sm font-bold text-slate-800 min-w-[220px] cursor-pointer"
+                      value={summaryDateFilter}
+                      onChange={(e) => setSummaryDateFilter(e.target.value)}
+                    >
+                      <option value="all">Semua Waktu (Keseluruhan)</option>
+                      {availableSummaryDates.map(date => (
+                        <option key={date} value={date}>{formatDate(new Date(date))}</option>
                       ))}
-                    </tbody>
-                  </table>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pt-2">
+                
+                {/* KPI CARD: Klik Meta */}
+                <div className="bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><Target size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Klik Meta</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.metaResults)}>{formatNumber(summaryData.metaResults)}</h3>
+                </div>
+
+                {/* KPI CARD: Klik Shopee */}
+                <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-orange-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><MousePointerClick size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Klik Shopee</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><MousePointerClick size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.clicks)}>{formatNumber(summaryData.clicks)}</h3>
+                </div>
+                
+                {/* KPI CARD: Orders */}
+                <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><ShoppingCart size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Total Pesanan</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingCart size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.orders)}>{formatNumber(summaryData.orders)}</h3>
+                </div>
+                
+                {/* KPI CARD: Produk Terjual */}
+                <div className="bg-gradient-to-br from-cyan-400 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-teal-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><Package size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Produk Terjual</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Package size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.produkTerjual)}>{formatNumber(summaryData.produkTerjual)}</h3>
+                </div>
+                
+                {/* KPI CARD: GMV */}
+                <div className="bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-rose-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><ShoppingBag size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Total GMV</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><ShoppingBag size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.gmv)}>{formatCurrency(summaryData.gmv)}</h3>
+                </div>
+
+                {/* KPI CARD: Commission */}
+                <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-emerald-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><DollarSign size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Total Komisi</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><DollarSign size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.commission)}>{formatCurrency(summaryData.commission)}</h3>
+                </div>
+
+                {/* KPI CARD: Spend */}
+                <div className="bg-gradient-to-br from-violet-400 to-purple-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-violet-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 opacity-20"><Activity size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90 leading-tight">Ad Spend<br/><span className="text-[10px] font-medium opacity-80">(+PPN {ppnPercentage}%)</span></p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatCurrency(summaryData.totalSpentWithPpn)}>{formatCurrency(summaryData.totalSpentWithPpn)}</h3>
+                </div>
+
+                {/* KPI CARD: Profit Dinamis */}
+                <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+                  <div className="absolute -right-4 -top-4 opacity-10"><TrendingUp size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">Keuntungan Bersih</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><TrendingUp size={18} /></div>
+                  </div>
+                  <h3 className={`text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate ${summaryProfit >= 0 ? 'text-emerald-400' : 'text-white'}`} title={formatCurrency(summaryProfit)}>
+                    {formatCurrency(summaryProfit)}
+                  </h3>
+                </div>
+
+                {/* KPI CARD: ROI */}
+                <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+                  <div className="absolute -right-4 -top-4 opacity-10"><Target size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">ROI</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoi}>{summaryRoi}</h3>
+                </div>
+
+                {/* KPI CARD: ROAS */}
+                <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-fuchsia-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}`}>
+                  <div className="absolute -right-4 -top-4 opacity-10"><Activity size={80} /></div>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <p className="text-sm font-bold text-white/90">ROAS</p>
+                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Activity size={18} /></div>
+                  </div>
+                  <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={summaryRoas}>{summaryRoas}</h3>
+                </div>
+
+              </div>
+            </div>
+
+            {/* KALENDER PROFIT HARIAN */}
+            {dailySummaryTrend.length > 0 && (
+              <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 flex flex-col relative z-20">
+                  <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white rounded-t-3xl relative z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 p-3.5 rounded-2xl text-white shadow-lg shadow-violet-500/30 shrink-0">
+                        <Calendar size={28} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Kalender Profit Harian</h2>
+                        <p className="text-sm font-medium text-slate-500 mt-1">Detail performa harian: Komisi vs Pengeluaran Iklan.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+                       {selectedMonth && availableMonths.length > 0 && (
+                          <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-inner w-full sm:w-auto overflow-x-auto shrink-0">
+                             <div className="px-4 py-2 flex flex-col">
+                               <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Ad Spend</span>
+                               <span className="text-sm font-black text-rose-500 whitespace-nowrap">{formatCurrency(monthlySummary.spend)}</span>
+                             </div>
+                             <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
+                             <div className="px-4 py-2 flex flex-col">
+                               <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Komisi</span>
+                               <span className="text-sm font-black text-emerald-500 whitespace-nowrap">{formatCurrency(monthlySummary.commission)}</span>
+                             </div>
+                             <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
+                             <div className={`px-5 py-2 flex flex-col rounded-xl shadow-sm shrink-0 ${monthlySummary.profit >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                               <span className="text-[10px] text-white/80 uppercase font-black tracking-wider whitespace-nowrap">Net Profit</span>
+                               <span className="text-sm font-black whitespace-nowrap">{formatCurrency(monthlySummary.profit)}</span>
+                             </div>
+                          </div>
+                       )}
+                       <select
+                          className="text-sm border-2 border-slate-200 rounded-xl px-5 py-4 md:py-3 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-black text-slate-700 shadow-sm cursor-pointer bg-white transition-all w-full md:w-auto shrink-0"
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                        >
+                          {availableMonths.map(m => <option key={m} value={m}>{formatMonthYear(m)}</option>)}
+                          {availableMonths.length === 0 && <option value="" disabled>Belum ada data</option>}
+                        </select>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-6 bg-slate-50/30 rounded-b-3xl">
+                     {availableMonths.length === 0 ? (
+                        <div className="text-center py-16 flex flex-col items-center justify-center">
+                           <Calendar size={48} className="text-slate-300 mb-4" />
+                           <p className="text-slate-500 font-bold text-lg">Unggah data CSV untuk melihat kalender profit.</p>
+                        </div>
+                     ) : (
+                        <div className="grid grid-cols-7 gap-3 sm:gap-5 relative">
+                          {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map(day => (
+                            <div key={day} className="text-center font-black text-slate-400 text-[10px] sm:text-xs py-3 uppercase tracking-widest bg-white rounded-xl shadow-sm border border-slate-100">{day.substring(0, 3)}</div>
+                          ))}
+                          
+                          {calendarDays.map((cDay, i) => {
+                            if (!cDay) return <div key={`empty-${i}`} className="p-2 sm:p-4 rounded-2xl border border-transparent"></div>;
+
+                            let colorClass = 'text-slate-900';
+                            let bgClass = 'bg-white border-slate-200 hover:border-slate-300';
+                            let profitBg = 'bg-slate-100 text-slate-600';
+
+                            if (cDay.hasData) {
+                              if (cDay.profit > 0) {
+                                colorClass = 'text-emerald-700';
+                                bgClass = 'bg-emerald-50/40 border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-500/10';
+                                profitBg = 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm';
+                              } else if (cDay.profit < 0) {
+                                colorClass = 'text-rose-700';
+                                bgClass = 'bg-rose-50/40 border-rose-200 hover:border-rose-400 hover:shadow-rose-500/10';
+                                profitBg = 'bg-rose-100 text-rose-700 border border-rose-200 shadow-sm';
+                              } else {
+                                colorClass = 'text-slate-800';
+                                bgClass = 'bg-white border-slate-200 hover:border-slate-400 hover:shadow-slate-500/10';
+                                profitBg = 'bg-slate-100 text-slate-700 border border-slate-200 shadow-sm';
+                              }
+                            }
+
+                            const isFirstRow = i < 7; 
+                            const dayOfWeek = i % 7;
+
+                            let yPos = isFirstRow ? "top-full mt-3" : "bottom-full mb-3";
+                            let originY = isFirstRow ? "origin-top" : "origin-bottom";
+
+                            let xPos = "left-1/2 -translate-x-1/2";
+                            let originX = "";
+
+                            if (dayOfWeek === 0 || dayOfWeek === 1) { 
+                              xPos = "left-0";
+                              originX = "-left";
+                            } else if (dayOfWeek === 5 || dayOfWeek === 6) { 
+                              xPos = "right-0";
+                              originX = "-right";
+                            }
+
+                            const tooltipPosClass = `${yPos} ${xPos} ${originY}${originX}`;
+
+                            return (
+                              <div key={i} className={`flex flex-col p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl relative group hover:z-50 min-h-[100px] sm:min-h-[135px] cursor-pointer ${bgClass}`}>
+                                 <div className="flex justify-between items-start mb-2">
+                                   <span className={`text-base sm:text-xl font-black ${cDay.hasData ? colorClass : 'text-slate-400'}`}>{cDay.day}</span>
+                                   {cDay.hasData && cDay.profit > 0 && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>}
+                                   {cDay.hasData && cDay.profit < 0 && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>}
+                                 </div>
+                                 
+                                 {cDay.hasData && (
+                                   <div className="flex flex-col h-full justify-end gap-2 mt-auto">
+                                     <div className={`px-1 sm:px-2 py-1.5 rounded-lg text-center ${profitBg}`}>
+                                       <span className="block text-[10px] sm:text-xs font-black truncate">
+                                         {cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}
+                                       </span>
+                                     </div>
+                                     
+                                     <div className="hidden sm:flex flex-col gap-1 border-t border-slate-300/60 pt-2 mt-1">
+                                       <div className="flex justify-between items-center text-[9px] font-bold">
+                                         <span className="text-slate-400 uppercase tracking-widest">Spnd</span>
+                                         <span className="text-rose-500 truncate pl-1" title={formatCurrency(cDay.spend)}>{formatCurrency(cDay.spend)}</span>
+                                       </div>
+                                       <div className="flex justify-between items-center text-[9px] font-bold">
+                                         <span className="text-slate-400 uppercase tracking-widest">Comm</span>
+                                         <span className="text-emerald-600 truncate pl-1" title={formatCurrency(cDay.commission)}>{formatCurrency(cDay.commission)}</span>
+                                       </div>
+                                     </div>
+                                   </div>
+                                 )}
+                                 
+                                 {cDay.hasData && (
+                                    <div className={`absolute ${tooltipPosClass} hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-xl text-white text-[10px] p-3.5 rounded-2xl w-48 z-[100] shadow-2xl border border-slate-700 pointer-events-none scale-0 group-hover:scale-100 transition-transform duration-200 ease-out`}>
+                                      <div className="font-black text-xs border-b border-slate-700/80 pb-1.5 mb-2 text-center text-white">{formatDate(new Date(cDay.dateStr))}</div>
+                                      
+                                      <div className="flex justify-between items-center mb-1.5">
+                                        <span className="text-slate-400 font-medium">Meta Klik/Order</span>
+                                        <span className="font-bold"><span className="text-sky-400">{formatNumber(cDay.metaClicks)}</span> <span className="text-slate-600">|</span> <span className="text-orange-400">{formatNumber(cDay.shopeeOrders)}</span></span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center mb-1.5">
+                                        <span className="text-slate-400 font-medium">Ad Spend</span>
+                                        <span className="font-bold text-rose-400">{formatCurrency(cDay.spend)}</span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center mb-1.5">
+                                        <span className="text-slate-400 font-medium">Komisi</span>
+                                        <span className="font-bold text-emerald-400">{formatCurrency(cDay.commission)}</span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center mb-2.5 border-b border-slate-700/80 pb-2">
+                                        <span className="text-slate-400 font-medium">GMV</span>
+                                        <span className="font-bold text-slate-300">{formatCurrency(cDay.gmv)}</span>
+                                      </div>
+                                      
+                                      <div className={`flex justify-between items-center bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/5 ${cDay.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        <span className="font-black uppercase tracking-widest text-[9px]">{cDay.profit >= 0 ? 'Profit' : 'Rugi'}</span>
+                                        <span className="font-black text-xs">{cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}</span>
+                                      </div>
+                                    </div>
+                                 )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                     )}
+                  </div>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* TAB NAVIGATION BAWAH - GAYA PILL (SEGMENTED CONTROL) */}
-        <div className="flex space-x-1.5 bg-slate-200/70 p-1.5 rounded-full w-fit mt-6 shadow-inner relative z-10 border border-slate-200">
-          <button 
-            onClick={() => setActiveTab('table')} 
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'table' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'}`}
-          >
-            <LayoutList size={18} /> Tabel Performa Tag
-          </button>
-          <button 
-            onClick={() => setActiveTab('charts')} 
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'charts' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'}`}
-          >
-            <LineChart size={18} /> Analitik & Visual
-          </button>
-        </div>
-
-        {/* TAB 1: SECTION TABEL DETAIL PERFORMA TAG */}
+        {/* TAB 2: SECTION TABEL DETAIL PERFORMA TAG */}
         {activeTab === 'table' && (
-          <>
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
             {/* TABEL PERFORMA TAG */}
-            <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden flex flex-col">
               
               {/* Toolbar Atas Tabel */}
               <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white relative z-10">
@@ -2003,6 +2113,17 @@ export default function App() {
                       ))}
                     </select>
                   </div>
+                  
+                  {/* BARU: Tombol Sensor Nama */}
+                  <button 
+                    onClick={() => setIsNamesHidden(!isNamesHidden)}
+                    className="text-xs text-slate-600 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-200 font-bold shadow-sm w-full sm:w-auto transition-colors"
+                    title="Sembunyikan nama tag dan campaign dari layar"
+                  >
+                    {isNamesHidden ? <EyeOff size={16} className="text-rose-500" /> : <Eye size={16} className="text-slate-400" />}
+                    <span className="hidden sm:block">{isNamesHidden ? 'Buka Sensor' : 'Sensor Nama'}</span>
+                  </button>
+
                   <div className="text-xs text-slate-600 flex items-center justify-center gap-2 bg-slate-50 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-200 font-bold shadow-sm w-full sm:w-auto">
                     <GripHorizontal size={16} className="text-slate-400" /> Swipe Horizontal
                   </div>
@@ -2129,6 +2250,16 @@ export default function App() {
 
                         let rateL2S_Str = item.rateLinkShopee === Infinity ? '∞' : `${item.rateLinkShopee.toFixed(2)}%`;
 
+                        // Logika Warna Dinamis untuk Rate Klik -> Shopee
+                        let rateColorClass = "text-slate-900";
+                        if (item.rateLinkShopee === Infinity || item.rateLinkShopee >= 80) {
+                          rateColorClass = "text-emerald-600"; // Hijau
+                        } else if (item.rateLinkShopee >= 65) {
+                          rateColorClass = "text-amber-500"; // Kuning/Amber
+                        } else {
+                          rateColorClass = "text-rose-600"; // Merah
+                        }
+
                         return (
                           <tr key={idx} className="group transition-colors relative z-0 hover:bg-slate-50/70">
                             
@@ -2141,7 +2272,7 @@ export default function App() {
                                   className="font-black text-violet-700 hover:text-violet-900 text-[13px] text-left hover:underline flex items-center gap-1.5 transition-colors"
                                   title="Klik untuk lihat detail harian"
                                 >
-                                  {item.tag || '<Tanpa Tag>'} <ExternalLink size={12} className="opacity-60" />
+                                  {isNamesHidden ? '******' : (item.tag || '<Tanpa Tag>')} <ExternalLink size={12} className="opacity-60" />
                                 </button>
                                 
                                 <button 
@@ -2156,7 +2287,7 @@ export default function App() {
                               <div className="flex flex-wrap gap-1.5 mb-3">
                                 {item.linkedCampaigns.map(c => (
                                   <span key={c} className="inline-flex items-center gap-1 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded-md max-w-[200px] shadow-sm">
-                                    <span className="truncate" title={c}>{c}</span>
+                                    <span className="truncate" title={c}>{isNamesHidden ? '******' : c}</span>
                                     <button onClick={() => unlinkCampaign(item.tag, c)} className="hover:text-rose-400 focus:outline-none rounded-full p-px opacity-80 hover:opacity-100 transition-colors bg-white/20">
                                       <X size={10} />
                                     </button>
@@ -2234,7 +2365,7 @@ export default function App() {
                             </td>
                             
                             <td className={getTdClass(item.rateLinkShopee, 'rateLinkShopee', 'bg-teal-50/10')}>
-                              <div className="font-black text-[13px] text-slate-900">{rateL2S_Str}</div>
+                              <div className={`font-black text-[13px] ${rateColorClass}`}>{rateL2S_Str}</div>
                             </td>
                             <td className={getTdClass(item.rateShopeeOrder, 'rateShopeeOrder', 'bg-teal-50/10 border-r border-slate-100')}>
                               <div className="font-black text-[13px] text-slate-900">{item.rateShopeeOrder.toFixed(2)}%</div>
@@ -2264,10 +2395,10 @@ export default function App() {
                 </table>
               </div>
             </div>
-          </>
+          </div>
         )}
 
-        {/* TAB 2: SECTION ANALITIK CHARTS */}
+        {/* TAB 3: SECTION ANALITIK CHARTS */}
         {activeTab === 'charts' && processedCommissions.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
             
@@ -2542,6 +2673,83 @@ export default function App() {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* TAB 4: SECTION EXPORT LAPORAN */}
+        {activeTab === 'export' && (
+          <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
+              <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3 rounded-2xl text-white shadow-sm">
+                <FileSpreadsheet size={28} strokeWidth={2} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Export Laporan Bulanan</h2>
+                <p className="text-sm font-medium text-slate-500 mt-1">Unduh data harian dalam format Excel (CSV) atau cetak sebagai PDF.</p>
+              </div>
+            </div>
+
+            <div className="p-6 sm:p-8 flex flex-col gap-8">
+              
+              {/* Form Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">1. Pilih Bulan</label>
+                  <select
+                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
+                    value={exportMonth}
+                    onChange={(e) => setExportMonth(e.target.value)}
+                  >
+                    {availableMonths.map(m => <option key={m} value={m}>{formatMonthYear(m)}</option>)}
+                    {availableMonths.length === 0 && <option value="" disabled>Belum ada data tersedia</option>}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">2. Jenis Laporan</label>
+                  <select
+                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
+                    value={exportType}
+                    onChange={(e) => setExportType(e.target.value)}
+                  >
+                    <option value="profit">Rekap Profit Harian (Lengkap)</option>
+                    <option value="meta">Iklan Meta Harian (Khusus Ads)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100">
+                <button
+                  onClick={handleExportPDF}
+                  disabled={availableMonths.length === 0}
+                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-white bg-slate-900 hover:bg-black shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                >
+                  <Printer size={20} /> Cetak / Simpan PDF
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  disabled={availableMonths.length === 0}
+                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-emerald-900 bg-emerald-100 hover:bg-emerald-400 border border-emerald-200 hover:border-emerald-400 hover:text-white shadow-lg transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                >
+                  <Download size={20} /> Unduh File Excel (CSV)
+                </button>
+              </div>
+
+              {/* Laporan Preview Info */}
+              <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl mt-2 flex items-start gap-4">
+                <Lightbulb size={24} className="text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-blue-900 mb-1">Informasi Laporan</h4>
+                  <p className="text-xs text-blue-700/80 leading-relaxed">
+                    {exportType === 'profit' 
+                      ? "Laporan 'Rekap Profit' akan merangkum seluruh aktivitas dari Klik Meta, Pesanan Shopee, hingga estimasi ROAS dan Keuntungan (Profit) Bersih per harinya untuk bulan yang dipilih."
+                      : "Laporan 'Iklan Meta' hanya akan menampilkan rincian performa Iklan di Facebook/Instagram (Biaya, Impresi, CPC, CTR) tanpa menyertakan konversi Shopee."}
+                  </p>
+                </div>
+              </div>
+
+            </div>
           </div>
         )}
 
