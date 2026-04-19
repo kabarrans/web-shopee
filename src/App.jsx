@@ -1174,9 +1174,9 @@ export default function App() {
     });
   };
 
-  // --- LOGIC GET WARNA TABEL (DARK MODE ADAPTED) ---
+  // --- LOGIC GET WARNA TABEL (LIGHT MODE ADAPTED) ---
   const getTdClass = (value, type, baseBg) => {
-    return `px-3 py-3 align-middle transition-colors border-r border-b border-slate-800 ${baseBg}`;
+    return `px-3 py-3 align-middle transition-colors border-r border-b border-slate-200 ${baseBg}`;
   };
 
   // --- LOGIC DRAG TO SCROLL TABEL ---
@@ -1374,19 +1374,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] font-sans text-slate-300 pb-12 relative selection:bg-violet-500/30">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12 relative selection:bg-violet-200">
       
       {/* LOADING OVERLAY SAAT MEMPROSES CSV BESAR */}
       {isProcessing && (
-        <div className="fixed inset-0 bg-[#020617]/80 backdrop-blur-sm z-[99999] flex flex-col items-center justify-center animate-in fade-in duration-300">
-          <div className="bg-slate-900 p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm text-center border border-slate-800">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[99999] flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm text-center border border-slate-200">
             <div className="relative w-16 h-16 mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-slate-800"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
               <div className="absolute inset-0 rounded-full border-4 border-violet-500 border-t-transparent animate-spin"></div>
-              <UploadCloud className="absolute inset-0 m-auto text-violet-400 w-6 h-6 animate-pulse" />
+              <UploadCloud className="absolute inset-0 m-auto text-violet-500 w-6 h-6 animate-pulse" />
             </div>
-            <h3 className="text-xl font-black text-white mb-2">Memproses File...</h3>
-            <p className="text-sm font-medium text-slate-400">Membaca baris data membutuhkan waktu beberapa saat. Harap tunggu.</p>
+            <h3 className="text-xl font-black text-slate-800 mb-2">Memproses File...</h3>
+            <p className="text-sm font-medium text-slate-500">Membaca baris data membutuhkan waktu beberapa saat. Harap tunggu.</p>
           </div>
         </div>
       )}
@@ -1394,31 +1394,31 @@ export default function App() {
       {/* ---------------- ONBOARDING TOUR COMPONENTS (MODAL BARU) ---------------- */}
       {showTour && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-[#020617]/90 backdrop-blur-sm transition-opacity" onClick={() => setShowTour(false)}></div>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowTour(false)}></div>
           
-          <div className="bg-slate-900 rounded-[2rem] shadow-2xl shadow-black/50 w-full max-w-4xl flex flex-col md:flex-row overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 min-h-[400px] border border-slate-800">
+          <div className="bg-white rounded-[2rem] shadow-2xl shadow-black/20 w-full max-w-4xl flex flex-col md:flex-row overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 min-h-[400px] border border-slate-200">
             
             {/* Panel Kiri: Animasi Warna & Ikon */}
             <div className={`md:w-2/5 p-8 flex flex-col items-center justify-center bg-gradient-to-br transition-colors duration-500 ${tourStepsData[tourStep].color} relative overflow-hidden`}>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
               <div className="relative z-10 transform transition-transform duration-500 scale-110 hover:scale-125">
                 {tourStepsData[tourStep].icon}
               </div>
             </div>
 
             {/* Panel Kanan: Konten Teks & Navigasi */}
-            <div className="md:w-3/5 p-8 sm:p-10 flex flex-col justify-between bg-slate-900 relative">
-              <button onClick={() => setShowTour(false)} className="absolute top-5 right-5 p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-full transition-colors focus:outline-none">
+            <div className="md:w-3/5 p-8 sm:p-10 flex flex-col justify-between bg-white relative">
+              <button onClick={() => setShowTour(false)} className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors focus:outline-none">
                 <X size={20} />
               </button>
               
               <div className="mt-4 md:mt-0">
-                <div className="inline-block px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-black tracking-widest uppercase rounded-lg mb-4 border border-slate-700">
+                <div className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black tracking-widest uppercase rounded-lg mb-4 border border-slate-200">
                   Panduan {tourStep + 1} dari {tourStepsData.length}
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white mb-4 leading-tight">{tourStepsData[tourStep].title}</h2>
-                <p className="text-base sm:text-lg text-slate-400 leading-relaxed font-medium">
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">{tourStepsData[tourStep].title}</h2>
+                <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">
                   {tourStepsData[tourStep].desc}
                 </p>
               </div>
@@ -1426,17 +1426,17 @@ export default function App() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-10">
                 <div className="flex gap-2">
                   {tourStepsData.map((_, i) => (
-                    <div key={i} className={`h-2.5 rounded-full transition-all duration-300 ${i === tourStep ? 'w-8 bg-violet-500' : 'w-2.5 bg-slate-700'}`} />
+                    <div key={i} className={`h-2.5 rounded-full transition-all duration-300 ${i === tourStep ? 'w-8 bg-violet-500' : 'w-2.5 bg-slate-200'}`} />
                   ))}
                 </div>
                 
                 <div className="flex gap-3 w-full sm:w-auto">
                   {tourStep > 0 && (
-                    <button onClick={handlePrevTour} className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
+                    <button onClick={handlePrevTour} className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors shadow-sm">
                       Kembali
                     </button>
                   )}
-                  <button onClick={handleNextTour} className="flex-1 sm:flex-none px-8 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-500 shadow-lg shadow-violet-900/30 transition-transform hover:-translate-y-0.5 border border-violet-500">
+                  <button onClick={handleNextTour} className="flex-1 sm:flex-none px-8 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-500 shadow-lg shadow-violet-500/30 transition-transform hover:-translate-y-0.5 border border-violet-500">
                     {tourStep === tourStepsData.length - 1 ? 'Mulai Gunakan' : 'Lanjut'}
                   </button>
                 </div>
@@ -1449,22 +1449,22 @@ export default function App() {
 
       {/* MODAL PERINGATAN META ADS */}
       {showMetaWarning && (
-        <div className="fixed inset-0 bg-[#020617]/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md flex flex-col animate-in zoom-in-95 duration-300 p-8 text-center border border-slate-800">
-            <div className="w-20 h-20 bg-rose-900/30 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-800 shadow-inner">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col animate-in zoom-in-95 duration-300 p-8 text-center border border-slate-200">
+            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100 shadow-inner">
               <AlertTriangle className="w-10 h-10 text-rose-500" />
             </div>
-            <h2 className="text-xl font-black text-white mb-3">Format Meta Ads Keliru!</h2>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+            <h2 className="text-xl font-black text-slate-800 mb-3">Format Meta Ads Keliru!</h2>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
               Sistem mendeteksi data Meta Ads Anda merangkum beberapa hari sekaligus (tidak di-breakdown per hari). Grafik Anda akan menjadi tidak akurat.
             </p>
-            <div className="bg-slate-800/50 rounded-2xl p-5 mb-8 text-sm text-slate-300 text-left border border-slate-700">
-              <strong className="block mb-2 text-white">Solusi Perbaikan:</strong> Silakan export ulang data dari Facebook Ads Manager dengan opsi:<br/>
-              <span className="text-violet-300 font-bold mt-3 inline-block bg-violet-900/30 px-3 py-1.5 rounded-lg border border-violet-800 shadow-sm">Breakdown ➔ By Time ➔ Day</span>
+            <div className="bg-slate-50 rounded-2xl p-5 mb-8 text-sm text-slate-700 text-left border border-slate-200">
+              <strong className="block mb-2 text-slate-900">Solusi Perbaikan:</strong> Silakan export ulang data dari Facebook Ads Manager dengan opsi:<br/>
+              <span className="text-violet-700 font-bold mt-3 inline-block bg-violet-100 px-3 py-1.5 rounded-lg border border-violet-200 shadow-sm">Breakdown ➔ By Time ➔ Day</span>
             </div>
             <button 
               onClick={() => setShowMetaWarning(false)}
-              className="w-full py-3.5 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-2xl shadow-lg transition-transform hover:-translate-y-1"
+              className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-slate-900/20 transition-transform hover:-translate-y-1"
             >
               Baik, Saya Mengerti
             </button>
@@ -1474,47 +1474,47 @@ export default function App() {
 
       {/* MODAL DETAIL HARIAN TAG */}
       {selectedTagForModal && (
-        <div className="fixed inset-0 bg-[#020617]/80 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={() => setSelectedTagForModal(null)}>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={() => setSelectedTagForModal(null)}>
           <div 
-            className="bg-slate-900 rounded-3xl shadow-2xl shadow-black/50 w-full max-w-5xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden border border-slate-800"
+            className="bg-white rounded-3xl shadow-2xl shadow-black/20 w-full max-w-5xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden border border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900 z-10">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white z-10">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-3">
-                  <div className="bg-violet-900/40 p-2 rounded-xl text-violet-400 border border-violet-800/50"><Activity size={20} /></div>
-                  Detail Harian: <span className="text-violet-300 bg-violet-900/30 border border-violet-800/50 px-3 py-1 rounded-lg text-lg">{selectedTagForModal}</span>
+                <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
+                  <div className="bg-violet-100 p-2 rounded-xl text-violet-600 border border-violet-200"><Activity size={20} /></div>
+                  Detail Harian: <span className="text-violet-700 bg-violet-50 border border-violet-100 px-3 py-1 rounded-lg text-lg shadow-sm">{selectedTagForModal}</span>
                 </h2>
               </div>
-              <button onClick={() => setSelectedTagForModal(null)} className="p-2.5 bg-slate-800 hover:bg-rose-900/50 hover:text-rose-400 rounded-full transition-colors border border-slate-700">
-                <X size={20} className="text-slate-400" />
+              <button onClick={() => setSelectedTagForModal(null)} className="p-2.5 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 rounded-full transition-colors border border-slate-200">
+                <X size={20} className="text-slate-500" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 bg-[#020617]/50">
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
               {tagDailyDetails.length === 0 ? (
-                <div className="text-center bg-slate-900 rounded-2xl p-12 border border-slate-800">
-                  <Activity size={48} className="mx-auto text-slate-600 mb-4" />
-                  <p className="text-slate-400 font-medium">Tidak ada data harian untuk tag ini.</p>
+                <div className="text-center bg-white rounded-2xl p-12 border border-slate-200 shadow-sm">
+                  <Activity size={48} className="mx-auto text-slate-300 mb-4" />
+                  <p className="text-slate-500 font-medium">Tidak ada data harian untuk tag ini.</p>
                 </div>
               ) : (
-                <div className="bg-[#0f172a] border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                   <table className="min-w-full text-sm text-left">
-                    <thead className="bg-slate-900 text-slate-300 font-semibold sticky top-0 border-b border-slate-800">
+                    <thead className="bg-slate-100 text-slate-700 font-semibold sticky top-0 border-b border-slate-200">
                       <tr>
-                        <th className="px-5 py-4 border-r border-slate-800">Tanggal</th>
-                        <th className="px-5 py-4 text-blue-400">Biaya Iklan (+{ppnPercentage}%)</th>
-                        <th className="px-5 py-4 text-blue-400">Klik Meta</th>
-                        <th className="px-5 py-4 text-blue-400">Avg CPC</th>
-                        <th className="px-5 py-4 text-orange-400">Klik Shopee</th>
-                        <th className="px-5 py-4 text-orange-400">Shopee Orders</th>
-                        <th className="px-5 py-4 text-orange-400">GMV</th>
-                        <th className="px-5 py-4 text-orange-400">Komisi Shopee</th>
-                        <th className="px-5 py-4 text-emerald-400">Keuntungan (Estimasi)</th>
-                        <th className="px-5 py-4 text-emerald-400">ROAS</th>
+                        <th className="px-5 py-4 border-r border-slate-200">Tanggal</th>
+                        <th className="px-5 py-4 text-blue-600">Biaya Iklan (+{ppnPercentage}%)</th>
+                        <th className="px-5 py-4 text-blue-600">Klik Meta</th>
+                        <th className="px-5 py-4 text-blue-600">Avg CPC</th>
+                        <th className="px-5 py-4 text-orange-600">Klik Shopee</th>
+                        <th className="px-5 py-4 text-orange-600">Shopee Orders</th>
+                        <th className="px-5 py-4 text-orange-600">GMV</th>
+                        <th className="px-5 py-4 text-orange-600">Komisi Shopee</th>
+                        <th className="px-5 py-4 text-emerald-600">Keuntungan (Estimasi)</th>
+                        <th className="px-5 py-4 text-emerald-600">ROAS</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-slate-100">
                       {tagDailyDetails.map((day, i) => {
                         const ppnMultiplier = 1 + (ppnPercentage / 100);
                         const mSpentWithPpn = day.mSpent * ppnMultiplier;
@@ -1523,45 +1523,45 @@ export default function App() {
                         const roas = mSpentWithPpn > 0 ? estKeuntungan / mSpentWithPpn : (estKeuntungan > 0 ? Infinity : 0);
                         
                         return (
-                          <tr key={i} className="hover:bg-slate-800/50 transition-colors">
-                            <td className="px-5 py-3 font-bold border-r border-slate-800 text-slate-300">{formatShortDate(day.date)}</td>
-                            <td className="px-5 py-3 bg-blue-900/10 text-slate-200 font-medium">{formatCurrency(mSpentWithPpn)}</td>
-                            <td className="px-5 py-3 bg-blue-900/10 text-slate-200">{formatNumber(day.mResults)}</td>
-                            <td className="px-5 py-3 bg-blue-900/10 text-slate-400">{formatCurrency(cpr)}</td>
-                            <td className="px-5 py-3 bg-orange-900/10 font-medium text-slate-200">{formatNumber(day.sClicks)}</td>
-                            <td className="px-5 py-3 bg-orange-900/10 font-bold text-white">{formatNumber(day.sOrders)}</td>
-                            <td className="px-5 py-3 bg-orange-900/10 text-slate-200 font-bold">{formatCurrency(day.sGmv)}</td>
-                            <td className="px-5 py-3 bg-orange-900/10 text-orange-400 font-bold">{formatCurrency(day.sComm)}</td>
-                            <td className={`px-5 py-3 font-bold bg-emerald-900/10 ${estKeuntungan >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          <tr key={i} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-5 py-3 font-bold border-r border-slate-200 text-slate-800">{formatShortDate(day.date)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700 font-medium">{formatCurrency(mSpentWithPpn)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700">{formatNumber(day.mResults)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-500">{formatCurrency(cpr)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 font-medium text-slate-700">{formatNumber(day.sClicks)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 font-bold text-slate-900">{formatNumber(day.sOrders)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 text-slate-700 font-bold">{formatCurrency(day.sGmv)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 text-orange-600 font-bold">{formatCurrency(day.sComm)}</td>
+                            <td className={`px-5 py-3 font-bold bg-emerald-50/50 ${estKeuntungan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {formatCurrency(estKeuntungan)}
                             </td>
-                            <td className="px-5 py-3 font-bold bg-emerald-900/10 text-emerald-400">
+                            <td className="px-5 py-3 font-bold bg-emerald-50/50 text-emerald-600">
                               {roas === Infinity ? '∞' : `${roas.toFixed(2)}x`}
                             </td>
                           </tr>
                         );
                       })}
                     </tbody>
-                    <tfoot className="bg-slate-900 text-white font-bold sticky bottom-0 border-t-2 border-slate-700">
+                    <tfoot className="bg-slate-100 text-slate-800 font-bold sticky bottom-0 border-t-2 border-slate-300">
                       <tr>
-                        <td className="px-5 py-4 border-r border-slate-700 tracking-wider">TOTAL</td>
-                        <td className="px-5 py-4">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100)))}</td>
-                        <td className="px-5 py-4">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.mResults,0))}</td>
-                        <td className="px-5 py-4 text-slate-400">
+                        <td className="px-5 py-4 border-r border-slate-300 tracking-wider">TOTAL</td>
+                        <td className="px-5 py-4 text-blue-700">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100)))}</td>
+                        <td className="px-5 py-4 text-blue-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.mResults,0))}</td>
+                        <td className="px-5 py-4 text-slate-500">
                           {formatCurrency(
                             (tagDailyDetails.reduce((a,b)=>a+b.mResults,0) > 0) 
                             ? (tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100))) / tagDailyDetails.reduce((a,b)=>a+b.mResults,0) 
                             : (tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) > 0 ? (tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100))) / tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) : 0)
                           )}
                         </td>
-                        <td className="px-5 py-4">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sClicks,0))}</td>
-                        <td className="px-5 py-4">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sOrders,0))}</td>
-                        <td className="px-5 py-4">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sGmv,0))}</td>
-                        <td className="px-5 py-4 text-orange-400">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sComm,0))}</td>
-                        <td className="px-5 py-4 text-emerald-400">
+                        <td className="px-5 py-4 text-orange-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sClicks,0))}</td>
+                        <td className="px-5 py-4 text-orange-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sOrders,0))}</td>
+                        <td className="px-5 py-4 text-orange-700">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sGmv,0))}</td>
+                        <td className="px-5 py-4 text-orange-600">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sComm,0))}</td>
+                        <td className="px-5 py-4 text-emerald-600">
                           {formatCurrency(tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0))}
                         </td>
-                        <td className="px-5 py-4 text-emerald-400">
+                        <td className="px-5 py-4 text-emerald-600">
                           { (() => {
                                const totalKeuntungan = tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0);
                                const totalSpent = tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100));
@@ -1578,19 +1578,19 @@ export default function App() {
         </div>
       )}
 
-      {/* HEADER UTAMA DARK MODE */}
-      <nav className="bg-[#0f172a] px-6 py-4 sticky top-0 z-40 shadow-lg shadow-black/20 border-b border-slate-800 flex items-center justify-between">
+      {/* HEADER UTAMA CERAH */}
+      <nav className="bg-white px-6 py-4 sticky top-0 z-40 shadow-sm border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-orange-500 to-rose-600 p-2.5 rounded-xl text-white shadow-lg shadow-orange-900/30">
+          <div className="bg-gradient-to-tr from-orange-500 to-rose-600 p-2.5 rounded-xl text-white shadow-lg shadow-orange-500/30">
             <Rocket size={24} className="stroke-[2.5]" />
           </div>
           <div>
             <h1 className="text-xl font-black tracking-wide">
-              <span className="text-orange-400">SHOPEE AFFF</span> <span className="text-white">x</span> <span className="text-blue-400">META</span>
+              <span className="text-orange-600">SHOPEE AFFF</span> <span className="text-slate-300">x</span> <span className="text-blue-600">META</span>
             </h1>
-            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">
+            <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">
               Performance Dashboard & Tag Tracking
-              <span className="block mt-0.5 text-[10px] text-slate-500 font-medium normal-case tracking-normal">by Slow Living Affiliate</span>
+              <span className="block mt-0.5 text-[10px] text-slate-400 font-medium normal-case tracking-normal">by Slow Living Affiliate</span>
             </p>
           </div>
         </div>
@@ -1598,7 +1598,7 @@ export default function App() {
         <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={() => { setShowTour(true); setTourStep(0); }} 
-            className="flex items-center gap-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl transition-colors border border-slate-700 shadow-sm"
+            className="flex items-center gap-2 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-4 py-2.5 rounded-xl transition-colors border border-slate-200 shadow-sm"
           >
             <HelpCircle size={18} />
             <span className="hidden sm:inline">Panduan</span>
@@ -1606,30 +1606,30 @@ export default function App() {
         </div>
       </nav>
 
-      {/* CONTAINER UTAMA DIBUAT FULL WIDTH / FLUID */}
+      {/* CONTAINER UTAMA */}
       <div className="w-full px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         
         {/* SECTION 1: UPLOAD DATA */}
-        <div id="step-upload" className="bg-[#0f172a] p-8 sm:p-10 rounded-[2rem] shadow-lg shadow-black/10 border border-slate-800/80 relative overflow-hidden">
+        <div id="step-upload" className="bg-white p-8 sm:p-10 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden">
           {/* Dekorasi Background */}
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 text-slate-800/30 pointer-events-none">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 text-slate-50 pointer-events-none">
             <UploadCloud size={300} />
           </div>
           
-          <div className="relative z-10 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-6">
+          <div className="relative z-10 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
-              <h2 className="text-2xl font-black text-white flex items-center gap-3 mb-2">
-                <div className="bg-blue-600 p-2.5 rounded-2xl text-white shadow-lg shadow-blue-900/40">
+              <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 mb-2">
+                <div className="bg-blue-600 p-2.5 rounded-2xl text-white shadow-lg shadow-blue-500/40">
                   <UploadCloud size={24} />
                 </div>
                 Import Data CSV
               </h2>
-              <p className="text-sm font-medium text-slate-400 ml-14">Unggah file laporan CSV/Excel untuk mulai sinkronisasi.</p>
+              <p className="text-sm font-medium text-slate-500 ml-14">Unggah file laporan CSV/Excel untuk mulai sinkronisasi.</p>
             </div>
             
             <div className="flex gap-2 ml-14 sm:ml-0">
-               <div className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-900/40 text-emerald-400 border-emerald-800' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
-                 <span className={`w-2 h-2 rounded-full ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></span>
+               <div className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                 <span className={`w-2 h-2 rounded-full ${metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
                  {metaAds.length > 0 && shopeeCommissions.length > 0 && shopeeClicks.length > 0 ? 'Data Lengkap' : 'Menunggu Data'}
                </div>
             </div>
@@ -1638,30 +1638,30 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
             
             {/* Upload Box 1: Meta Ads */}
-            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${metaAds.length > 0 ? 'bg-blue-900/20 border-2 border-blue-500 shadow-md shadow-blue-900/20' : 'bg-slate-800/40 border-2 border-dashed border-slate-700 hover:border-blue-500 hover:bg-blue-900/20 hover:shadow-lg'}`}>
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${metaAds.length > 0 ? 'bg-blue-50 border-2 border-blue-500 shadow-md shadow-blue-500/20' : 'bg-slate-50 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'}`}>
               {metaAds.length > 0 && (
-                <button onClick={() => setMetaAds([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-rose-900/40 p-2 rounded-full border border-slate-700 shadow-sm transition-colors z-20 focus:outline-none">
+                <button onClick={() => setMetaAds([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full border border-slate-200 shadow-sm transition-colors z-20 focus:outline-none">
                   <X size={16} className="stroke-[3]" />
                 </button>
               )}
               <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
-                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${metaAds.length > 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 scale-110' : 'bg-slate-900 text-slate-400 border border-slate-700 group-hover:border-blue-500 group-hover:text-blue-400 group-hover:scale-110 shadow-sm'}`}>
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${metaAds.length > 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50 scale-110' : 'bg-white text-slate-400 border border-slate-200 group-hover:border-blue-400 group-hover:text-blue-500 group-hover:scale-110 shadow-sm'}`}>
                   <MetaIcon size={32} strokeWidth={metaAds.length > 0 ? 2.5 : 2} />
                 </div>
-                <span className="text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Langkah 1</span>
-                <span className="text-lg font-black text-white mb-2">Data Meta Ads</span>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 1</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Data Meta Ads</span>
                 
                 {metaAds.length > 0 ? (
                   <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
-                    <span className="text-xs font-bold text-blue-300 bg-blue-900/50 px-3 py-1.5 rounded-xl border border-blue-800 shadow-sm mb-1.5">
+                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 shadow-sm mb-1.5">
                       {formatNumber(metaAds.length)} Baris
                     </span>
-                    <span className="text-[11px] font-medium text-slate-400">Berhasil dimuat</span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center mt-1">
-                    <span className="text-xs text-slate-400 mb-3">Gunakan <span className="font-bold text-slate-300">Breakdown By Day</span></span>
-                    <span className="text-[11px] font-bold text-blue-400 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 shadow-sm group-hover:border-blue-600 group-hover:bg-blue-900/30 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
+                    <span className="text-xs text-slate-500 mb-3">Gunakan <span className="font-bold text-slate-700">Breakdown By Day</span></span>
+                    <span className="text-[11px] font-bold text-blue-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-blue-300 group-hover:bg-blue-50 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
                   </div>
                 )}
                 <input type="file" multiple accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => handleMultiFileUpload(e, setMetaAds, r => r['Campaign name'] && parseNum(r['Amount spent (IDR)']) > 0, true)} />
@@ -1669,30 +1669,30 @@ export default function App() {
             </div>
 
             {/* Upload Box 2: Shopee Commissions */}
-            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeCommissions.length > 0 ? 'bg-emerald-900/20 border-2 border-emerald-500 shadow-md shadow-emerald-900/20' : 'bg-slate-800/40 border-2 border-dashed border-slate-700 hover:border-emerald-500 hover:bg-emerald-900/20 hover:shadow-lg'}`}>
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeCommissions.length > 0 ? 'bg-emerald-50 border-2 border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-50 border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-lg'}`}>
               {shopeeCommissions.length > 0 && (
-                <button onClick={() => setShopeeCommissions([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-rose-900/40 p-2 rounded-full border border-slate-700 shadow-sm transition-colors z-20 focus:outline-none">
+                <button onClick={() => setShopeeCommissions([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full border border-slate-200 shadow-sm transition-colors z-20 focus:outline-none">
                   <X size={16} className="stroke-[3]" />
                 </button>
               )}
               <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
-                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeCommissions.length > 0 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50 scale-110' : 'bg-slate-900 text-slate-400 border border-slate-700 group-hover:border-emerald-500 group-hover:text-emerald-400 group-hover:scale-110 shadow-sm'}`}>
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeCommissions.length > 0 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 scale-110' : 'bg-white text-slate-400 border border-slate-200 group-hover:border-emerald-400 group-hover:text-emerald-500 group-hover:scale-110 shadow-sm'}`}>
                   <ShopeeIcon size={32} strokeWidth={shopeeCommissions.length > 0 ? 2.5 : 2} />
                 </div>
-                <span className="text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Langkah 2</span>
-                <span className="text-lg font-black text-white mb-2">Komisi Shopee</span>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 2</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Komisi Shopee</span>
                 
                 {shopeeCommissions.length > 0 ? (
                   <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
-                    <span className="text-xs font-bold text-emerald-300 bg-emerald-900/50 px-3 py-1.5 rounded-xl border border-emerald-800 shadow-sm mb-1.5">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-sm mb-1.5">
                       {formatNumber(shopeeCommissions.length)} Pesanan
                     </span>
-                    <span className="text-[11px] font-medium text-slate-400">Berhasil dimuat</span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center mt-1">
-                    <span className="text-xs text-slate-400 mb-3">File <span className="font-bold text-slate-300">AffiliateCommission</span></span>
-                    <span className="text-[11px] font-bold text-emerald-400 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 shadow-sm group-hover:border-emerald-600 group-hover:bg-emerald-900/30 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
+                    <span className="text-xs text-slate-500 mb-3">File <span className="font-bold text-slate-700">AffiliateCommission</span></span>
+                    <span className="text-[11px] font-bold text-emerald-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-emerald-300 group-hover:bg-emerald-50 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
                   </div>
                 )}
                 <input type="file" multiple accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeCommissions, r => r['ID Pemesanan'], false)} />
@@ -1700,30 +1700,30 @@ export default function App() {
             </div>
 
             {/* Upload Box 3: Shopee Clicks */}
-            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeClicks.length > 0 ? 'bg-orange-900/20 border-2 border-orange-500 shadow-md shadow-orange-900/20' : 'bg-slate-800/40 border-2 border-dashed border-slate-700 hover:border-orange-500 hover:bg-orange-900/20 hover:shadow-lg'}`}>
+            <div className={`group relative rounded-[1.5rem] transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 ${shopeeClicks.length > 0 ? 'bg-orange-50 border-2 border-orange-500 shadow-md shadow-orange-500/20' : 'bg-slate-50 border-2 border-dashed border-slate-200 hover:border-orange-400 hover:bg-orange-50 hover:shadow-lg'}`}>
               {shopeeClicks.length > 0 && (
-                <button onClick={() => setShopeeClicks([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-rose-900/40 p-2 rounded-full border border-slate-700 shadow-sm transition-colors z-20 focus:outline-none">
+                <button onClick={() => setShopeeClicks([])} className="absolute top-4 right-4 text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-full border border-slate-200 shadow-sm transition-colors z-20 focus:outline-none">
                   <X size={16} className="stroke-[3]" />
                 </button>
               )}
               <label className="cursor-pointer flex flex-col items-center justify-center p-8 text-center h-full w-full relative z-10">
-                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeClicks.length > 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-900/50 scale-110' : 'bg-slate-900 text-slate-400 border border-slate-700 group-hover:border-orange-500 group-hover:text-orange-400 group-hover:scale-110 shadow-sm'}`}>
+                <div className={`p-4 rounded-2xl mb-5 transition-all duration-300 ${shopeeClicks.length > 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/50 scale-110' : 'bg-white text-slate-400 border border-slate-200 group-hover:border-orange-400 group-hover:text-orange-500 group-hover:scale-110 shadow-sm'}`}>
                   <ShopeeIcon size={32} strokeWidth={shopeeClicks.length > 0 ? 2.5 : 2} />
                 </div>
-                <span className="text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">Langkah 3</span>
-                <span className="text-lg font-black text-white mb-2">Klik Shopee</span>
+                <span className="text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-widest">Langkah 3</span>
+                <span className="text-lg font-black text-slate-800 mb-2">Klik Shopee</span>
                 
                 {shopeeClicks.length > 0 ? (
                   <div className="flex flex-col items-center animate-in zoom-in duration-300 mt-1">
-                    <span className="text-xs font-bold text-orange-300 bg-orange-900/50 px-3 py-1.5 rounded-xl border border-orange-800 shadow-sm mb-1.5">
+                    <span className="text-xs font-bold text-orange-700 bg-orange-100 px-3 py-1.5 rounded-xl border border-orange-200 shadow-sm mb-1.5">
                       {formatNumber(shopeeClicks.length)} Klik
                     </span>
-                    <span className="text-[11px] font-medium text-slate-400">Berhasil dimuat</span>
+                    <span className="text-[11px] font-medium text-slate-500">Berhasil dimuat</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center mt-1">
-                    <span className="text-xs text-slate-400 mb-3">File <span className="font-bold text-slate-300">WebsiteClickReport</span></span>
-                    <span className="text-[11px] font-bold text-orange-400 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 shadow-sm group-hover:border-orange-500 group-hover:bg-orange-900/30 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
+                    <span className="text-xs text-slate-500 mb-3">File <span className="font-bold text-slate-700">WebsiteClickReport</span></span>
+                    <span className="text-[11px] font-bold text-orange-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm group-hover:border-orange-300 group-hover:bg-orange-50 transition-colors">Pilih CSV / XLSX (Multiple File)</span>
                   </div>
                 )}
                 <input type="file" multiple accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => handleMultiFileUpload(e, setShopeeClicks, r => r['Klik ID'], false)} />
@@ -1735,19 +1735,19 @@ export default function App() {
 
         {/* SECTION 2: PENGATURAN SINGKRONISASI TANGGAL & META ADS */}
         {clickDateRange && (
-          <div className="bg-slate-900 p-6 rounded-[2rem] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 border border-slate-800 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 border border-slate-200 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-100/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="flex items-start gap-4 relative z-10">
-              <div className="bg-slate-800/50 p-3 rounded-2xl text-violet-400 border border-slate-700">
+              <div className="bg-slate-50 p-3 rounded-2xl text-violet-600 border border-slate-100 shadow-sm">
                 <Calendar size={24} />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base">Rentang Tanggal Sinkronisasi</h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  Mendeteksi data dari <span className="font-bold text-violet-400">{formatDate(clickDateRange.min)}</span> hingga <span className="font-bold text-violet-400">{formatDate(clickDateRange.max)}</span>
+                <h3 className="font-bold text-slate-800 text-base">Rentang Tanggal Sinkronisasi</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Mendeteksi data dari <span className="font-bold text-violet-600">{formatDate(clickDateRange.min)}</span> hingga <span className="font-bold text-violet-600">{formatDate(clickDateRange.max)}</span>
                 </p>
                 {isSyncDate && (
-                  <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+                  <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Meta Ads otomatis difilter sesuai rentang klik.
                   </p>
                 )}
@@ -1756,40 +1756,40 @@ export default function App() {
             
             <button 
               onClick={() => setIsSyncDate(!isSyncDate)}
-              className={`relative z-10 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg ${isSyncDate ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-900/20 border border-violet-500' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'}`}
+              className={`relative z-10 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-sm ${isSyncDate ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/20' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200'}`}
             >
-              {isSyncDate ? <ToggleRight className="text-white" size={20}/> : <ToggleLeft className="text-slate-500" size={20}/>}
+              {isSyncDate ? <ToggleRight className="text-white" size={20}/> : <ToggleLeft className="text-slate-400" size={20}/>}
               {isSyncDate ? 'Sinkronasi Aktif' : 'Sinkronasi Mati'}
             </button>
           </div>
         )}
 
-        {/* TAB NAVIGATION BAWAH - MODERN GLASSMORPHISM STYLE (DARK) */}
-        <div className="flex flex-wrap justify-center sm:justify-start gap-2 bg-[#0f172a]/60 backdrop-blur-xl p-2.5 rounded-[2rem] sm:rounded-full w-full sm:w-fit mt-4 mb-8 shadow-xl shadow-black/40 border border-slate-800 relative z-20 mx-auto sm:mx-0">
+        {/* TAB NAVIGATION BAWAH */}
+        <div className="flex flex-wrap justify-center sm:justify-start gap-2 bg-white/60 backdrop-blur-xl p-2.5 rounded-[2rem] sm:rounded-full w-full sm:w-fit mt-4 mb-8 shadow-sm border border-slate-200 relative z-20 mx-auto sm:mx-0">
           <button 
             onClick={() => setActiveTab('dashboard')} 
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'dashboard' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/30 scale-[1.02] sm:scale-105 border border-violet-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border border-transparent'}`}
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'dashboard' ? 'bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <Activity size={18} className={activeTab === 'dashboard' ? 'text-white' : 'opacity-70'} /> 
             <span className="whitespace-nowrap">Dashboard</span>
           </button>
           <button 
             onClick={() => setActiveTab('table')} 
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'table' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/30 scale-[1.02] sm:scale-105 border border-violet-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border border-transparent'}`}
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'table' ? 'bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <LayoutList size={18} className={activeTab === 'table' ? 'text-white' : 'opacity-70'} /> 
             <span className="whitespace-nowrap">Performa Tag</span>
           </button>
           <button 
             onClick={() => setActiveTab('charts')} 
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'charts' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/30 scale-[1.02] sm:scale-105 border border-violet-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border border-transparent'}`}
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'charts' ? 'bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <LineChart size={18} className={activeTab === 'charts' ? 'text-white' : 'opacity-70'} /> 
             <span className="whitespace-nowrap">Analitik & Visual</span>
           </button>
           <button 
             onClick={() => setActiveTab('export')} 
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'export' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/30 scale-[1.02] sm:scale-105 border border-violet-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border border-transparent'}`}
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'export' ? 'bg-violet-600 text-white shadow-md shadow-violet-500/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <Download size={18} className={activeTab === 'export' ? 'text-white' : 'opacity-70'} /> 
             <span className="whitespace-nowrap">Export Laporan</span>
@@ -1800,17 +1800,17 @@ export default function App() {
         {activeTab === 'dashboard' && (
           <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
             {/* SECTION: RINGKASAN TOTAL DENGAN GRADIENT CARDS */}
-            <div id="step-summary" className="relative bg-[#0f172a] p-8 rounded-[2rem] shadow-sm border border-slate-800/80 transition-all duration-500 overflow-hidden">
+            <div id="step-summary" className="relative bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 transition-all duration-500 overflow-hidden">
               
               {/* OVERLAY KETIKA DATA KOSONG */}
               {(shopeeClicks.length === 0 && shopeeCommissions.length === 0 && processedMetaAds.length === 0) && (
-                <div className="absolute inset-0 z-30 bg-[#020617]/80 backdrop-blur-md flex flex-col items-center justify-center">
-                   <div className="bg-slate-900 p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm text-center border border-slate-800 transform -translate-y-4 animate-in zoom-in duration-500">
-                     <div className="bg-slate-800 p-4 rounded-full mb-5 border border-slate-700 shadow-inner">
-                       <BarChart2 size={36} className="text-slate-500" />
+                <div className="absolute inset-0 z-30 bg-slate-50/60 backdrop-blur-md flex flex-col items-center justify-center">
+                   <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm text-center border border-slate-200/60 transform -translate-y-4 animate-in zoom-in duration-500">
+                     <div className="bg-slate-50 p-4 rounded-full mb-5 border border-slate-100 shadow-inner">
+                       <BarChart2 size={36} className="text-slate-400" />
                      </div>
-                     <h3 className="text-xl font-black text-white mb-3">Data Belum Tersedia</h3>
-                     <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                     <h3 className="text-xl font-black text-slate-800 mb-3">Data Belum Tersedia</h3>
+                     <p className="text-sm text-slate-500 font-medium leading-relaxed">
                        Silakan unggah minimal satu file (Meta Ads, Komisi, atau Klik) di panel atas untuk melihat ringkasan performa di sini.
                      </p>
                    </div>
@@ -1818,30 +1818,30 @@ export default function App() {
               )}
               
               <div className={`flex flex-col gap-6 transition-all duration-700 ${(shopeeClicks.length === 0 && shopeeCommissions.length === 0 && processedMetaAds.length === 0) ? 'opacity-20 grayscale blur-[3px] pointer-events-none' : ''}`}>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
                   <div className="flex items-center gap-3">
-                    <div className="bg-slate-800 p-2 rounded-xl text-slate-300 border border-slate-700"><BarChart2 size={24} /></div>
-                    <h2 className="text-xl font-black text-white">Ringkasan Performa Keseluruhan</h2>
+                    <div className="bg-slate-100 p-2 rounded-xl text-slate-700 border border-slate-200 shadow-sm"><BarChart2 size={24} /></div>
+                    <h2 className="text-xl font-black text-slate-800">Ringkasan Performa Keseluruhan</h2>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-20">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-400 font-bold">PPN Meta:</span>
-                      <div className="flex items-center bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 w-24 shadow-inner transition-all">
+                      <span className="text-sm text-slate-500 font-bold">PPN Meta:</span>
+                      <div className="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 w-24 shadow-sm transition-all">
                         <input
                           type="number"
-                          className="w-full bg-transparent text-sm text-white outline-none text-center font-black"
+                          className="w-full bg-transparent text-sm text-slate-800 outline-none text-center font-black"
                           value={ppnPercentage}
                           onChange={(e) => setPpnPercentage(Number(e.target.value) || 0)}
                         />
-                        <span className="text-sm text-slate-500 font-bold">%</span>
+                        <span className="text-sm text-slate-400 font-bold">%</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-400 font-bold hidden sm:block">Filter:</span>
+                      <span className="text-sm text-slate-500 font-bold hidden sm:block">Filter:</span>
                       <select
-                        className="text-sm border border-slate-700 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-slate-800 shadow-sm font-bold text-white min-w-[220px] cursor-pointer"
+                        className="text-sm border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-white shadow-sm font-bold text-slate-700 min-w-[220px] cursor-pointer"
                         value={summaryDateFilter}
                         onChange={(e) => setSummaryDateFilter(e.target.value)}
                       >
@@ -1857,7 +1857,7 @@ export default function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pt-2">
                   
                   {/* KPI CARD: Klik Meta */}
-                  <div className="bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-blue-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><Target size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Klik Meta</p>
@@ -1867,7 +1867,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: Klik Shopee */}
-                  <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-orange-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-orange-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><MousePointerClick size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Klik Shopee</p>
@@ -1877,7 +1877,7 @@ export default function App() {
                   </div>
                   
                   {/* KPI CARD: Orders */}
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-indigo-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-indigo-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><ShoppingCart size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Total Pesanan</p>
@@ -1887,7 +1887,7 @@ export default function App() {
                   </div>
                   
                   {/* KPI CARD: Produk Terjual */}
-                  <div className="bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-teal-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-teal-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><Package size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Produk Terjual</p>
@@ -1897,7 +1897,7 @@ export default function App() {
                   </div>
                   
                   {/* KPI CARD: GMV */}
-                  <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-rose-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-rose-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><ShoppingBag size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Total GMV</p>
@@ -1907,7 +1907,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: Commission */}
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-emerald-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-emerald-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><DollarSign size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Total Komisi</p>
@@ -1917,7 +1917,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: Spend */}
-                  <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-violet-900/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 flex flex-col justify-between shadow-lg shadow-violet-500/20 text-white hover:-translate-y-1 transition-transform relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20"><Activity size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90 leading-tight">Ad Spend<br/><span className="text-[10px] font-medium opacity-80">(+PPN {ppnPercentage}%)</span></p>
@@ -1927,7 +1927,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: Profit Dinamis */}
-                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/50 border border-slate-700' : 'bg-gradient-to-br from-rose-600 to-red-700 shadow-rose-900/30'}`}>
+                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/30' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/20'}`}>
                     <div className="absolute -right-4 -top-4 opacity-10"><TrendingUp size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">Keuntungan Bersih</p>
@@ -1939,7 +1939,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: ROI */}
-                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-indigo-600 to-violet-700 shadow-indigo-900/30' : 'bg-gradient-to-br from-rose-600 to-red-700 shadow-rose-900/30'}`}>
+                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/20'}`}>
                     <div className="absolute -right-4 -top-4 opacity-10"><Target size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">ROI</p>
@@ -1949,7 +1949,7 @@ export default function App() {
                   </div>
 
                   {/* KPI CARD: ROAS */}
-                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-fuchsia-600 to-pink-700 shadow-fuchsia-900/30' : 'bg-gradient-to-br from-rose-600 to-red-700 shadow-rose-900/30'}`}>
+                  <div className={`rounded-2xl p-5 flex flex-col justify-between shadow-lg text-white hover:-translate-y-1 transition-transform relative overflow-hidden ${summaryProfit >= 0 ? 'bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-fuchsia-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/20'}`}>
                     <div className="absolute -right-4 -top-4 opacity-10"><Activity size={80} /></div>
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <p className="text-sm font-bold text-white/90">ROAS</p>
@@ -1964,40 +1964,40 @@ export default function App() {
 
             {/* KALENDER PROFIT HARIAN */}
             {dailySummaryTrend.length > 0 && (
-              <div className="mt-8 border-t border-slate-800 pt-8 animate-in fade-in slide-in-from-top-4 duration-700">
-                <div className="bg-[#0f172a] rounded-3xl shadow-lg shadow-black/20 border border-slate-800 flex flex-col relative z-20">
-                  <div className="p-5 sm:p-6 border-b border-slate-800 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#0f172a] rounded-t-3xl relative z-10">
+              <div className="mt-8 pt-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col relative z-20 overflow-hidden">
+                  <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white relative z-10">
                     <div className="flex items-center gap-4">
-                      <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 p-3.5 rounded-2xl text-white shadow-lg shadow-violet-900/40 shrink-0">
+                      <div className="bg-gradient-to-br from-violet-500 to-fuchsia-500 p-3.5 rounded-2xl text-white shadow-md shadow-violet-200 shrink-0">
                         <Calendar size={28} strokeWidth={2.5} />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-white tracking-tight">Kalender Profit Harian</h2>
-                        <p className="text-sm font-medium text-slate-400 mt-1">Detail performa harian: Komisi vs Pengeluaran Iklan.</p>
+                        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Kalender Profit Harian</h2>
+                        <p className="text-sm font-medium text-slate-500 mt-1">Detail performa harian: Komisi vs Pengeluaran Iklan.</p>
                       </div>
                     </div>
                     
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
                        {selectedMonth && availableMonths.length > 0 && (
-                          <div className="flex items-center bg-slate-900 p-1.5 rounded-2xl border border-slate-800 shadow-inner w-full sm:w-auto overflow-x-auto shrink-0">
+                          <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-inner w-full sm:w-auto overflow-x-auto shrink-0">
                              <div className="px-4 py-2 flex flex-col">
-                               <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider whitespace-nowrap">Ad Spend</span>
-                               <span className="text-sm font-black text-rose-400 whitespace-nowrap">{formatCurrency(monthlySummary.spend)}</span>
+                               <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Ad Spend</span>
+                               <span className="text-sm font-black text-rose-500 whitespace-nowrap">{formatCurrency(monthlySummary.spend)}</span>
                              </div>
-                             <div className="w-px h-8 bg-slate-700 mx-1 shrink-0"></div>
+                             <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
                              <div className="px-4 py-2 flex flex-col">
-                               <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider whitespace-nowrap">Komisi</span>
-                               <span className="text-sm font-black text-emerald-400 whitespace-nowrap">{formatCurrency(monthlySummary.commission)}</span>
+                               <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider whitespace-nowrap">Komisi</span>
+                               <span className="text-sm font-black text-emerald-500 whitespace-nowrap">{formatCurrency(monthlySummary.commission)}</span>
                              </div>
-                             <div className="w-px h-8 bg-slate-700 mx-1 shrink-0"></div>
-                             <div className={`px-5 py-2 flex flex-col rounded-xl shadow-sm shrink-0 border border-transparent ${monthlySummary.profit >= 0 ? 'bg-emerald-900/40 border-emerald-800 text-emerald-400' : 'bg-rose-900/40 border-rose-800 text-rose-400'}`}>
+                             <div className="w-px h-8 bg-slate-200 mx-1 shrink-0"></div>
+                             <div className={`px-5 py-2 flex flex-col rounded-xl shadow-sm shrink-0 border border-transparent ${monthlySummary.profit >= 0 ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-rose-100 border-rose-200 text-rose-700'}`}>
                                <span className="text-[10px] opacity-70 uppercase font-black tracking-wider whitespace-nowrap">Net Profit</span>
                                <span className="text-sm font-black whitespace-nowrap">{formatCurrency(monthlySummary.profit)}</span>
                              </div>
                           </div>
                        )}
                        <select
-                          className="text-sm border-2 border-slate-700 rounded-xl px-5 py-4 md:py-3 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-black text-slate-200 shadow-sm cursor-pointer bg-slate-800 transition-all w-full md:w-auto shrink-0"
+                          className="text-sm border-2 border-slate-200 rounded-xl px-5 py-4 md:py-3 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-black text-slate-700 shadow-sm cursor-pointer bg-white transition-all w-full md:w-auto shrink-0"
                           value={selectedMonth}
                           onChange={(e) => setSelectedMonth(e.target.value)}
                         >
@@ -2007,41 +2007,41 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="p-4 sm:p-6 bg-slate-900/50 rounded-b-3xl">
+                  <div className="p-4 sm:p-6 bg-slate-50/50">
                      {availableMonths.length === 0 ? (
                         <div className="text-center py-16 flex flex-col items-center justify-center">
-                           <Calendar size={48} className="text-slate-600 mb-4" />
-                           <p className="text-slate-400 font-bold text-lg">Unggah data CSV untuk melihat kalender profit.</p>
+                           <Calendar size={48} className="text-slate-300 mb-4" />
+                           <p className="text-slate-500 font-bold text-lg">Unggah data CSV untuk melihat kalender profit.</p>
                         </div>
                      ) : (
                         <div className="grid grid-cols-7 gap-3 sm:gap-5 relative">
                           {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map(day => (
-                            <div key={day} className="text-center font-black text-slate-400 text-[10px] sm:text-xs py-3 uppercase tracking-widest bg-[#0f172a] rounded-xl shadow-sm border border-slate-800">{day.substring(0, 3)}</div>
+                            <div key={day} className="text-center font-black text-slate-500 text-[10px] sm:text-xs py-3 uppercase tracking-widest bg-white rounded-xl shadow-sm border border-slate-100">{day.substring(0, 3)}</div>
                           ))}
                           
                           {calendarDays.map((cDay, i) => {
                             if (!cDay) return <div key={`empty-${i}`} className="p-2 sm:p-4 rounded-2xl border border-transparent"></div>;
 
-                            let colorClass = 'text-white';
-                            let bgClass = 'bg-slate-800/50 border-slate-700 hover:border-slate-500';
-                            let profitBg = 'bg-slate-800 text-slate-300 border border-slate-700';
+                            let colorClass = 'text-slate-800';
+                            let bgClass = 'bg-white border-slate-200 hover:border-slate-300';
+                            let profitBg = 'bg-slate-50 text-slate-600 border border-slate-100';
 
                             if (cDay.hasData) {
                               if (cDay.profit > 0) {
-                                colorClass = 'text-emerald-400';
-                                bgClass = 'bg-emerald-900/20 border-emerald-800/50 hover:border-emerald-500 hover:shadow-emerald-900/20';
-                                profitBg = 'bg-emerald-900/50 text-emerald-400 border border-emerald-800 shadow-sm';
+                                colorClass = 'text-emerald-600';
+                                bgClass = 'bg-emerald-50/50 border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100';
+                                profitBg = 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm';
                               } else if (cDay.profit < 0) {
-                                colorClass = 'text-rose-400';
-                                bgClass = 'bg-rose-900/20 border-rose-800/50 hover:border-rose-500 hover:shadow-rose-900/20';
-                                profitBg = 'bg-rose-900/50 text-rose-400 border border-rose-800 shadow-sm';
+                                colorClass = 'text-rose-600';
+                                bgClass = 'bg-rose-50/50 border-rose-200 hover:border-rose-400 hover:shadow-rose-100';
+                                profitBg = 'bg-rose-100 text-rose-700 border border-rose-200 shadow-sm';
                               } else {
-                                colorClass = 'text-slate-200';
-                                bgClass = 'bg-slate-800/50 border-slate-700 hover:border-slate-500 hover:shadow-slate-900/20';
-                                profitBg = 'bg-slate-800 text-slate-300 border border-slate-700 shadow-sm';
+                                colorClass = 'text-slate-600';
+                                bgClass = 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:shadow-slate-100';
+                                profitBg = 'bg-white text-slate-500 border border-slate-200 shadow-sm';
                               }
                             } else {
-                               colorClass = 'text-slate-600';
+                               colorClass = 'text-slate-300';
                             }
 
                             const isFirstRow = i < 7; 
@@ -2064,11 +2064,11 @@ export default function App() {
                             const tooltipPosClass = `${yPos} ${xPos} ${originY}${originX}`;
 
                             return (
-                              <div key={i} className={`flex flex-col p-3 sm:p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl relative group hover:z-50 min-h-[100px] sm:min-h-[135px] cursor-pointer ${bgClass}`}>
+                              <div key={i} className={`flex flex-col p-3 sm:p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md relative group hover:z-50 min-h-[100px] sm:min-h-[135px] cursor-pointer ${bgClass}`}>
                                  <div className="flex justify-between items-start mb-2">
                                    <span className={`text-base sm:text-xl font-black ${colorClass}`}>{cDay.day}</span>
-                                   {cDay.hasData && cDay.profit > 0 && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div>}
-                                   {cDay.hasData && cDay.profit < 0 && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>}
+                                   {cDay.hasData && cDay.profit > 0 && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>}
+                                   {cDay.hasData && cDay.profit < 0 && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></div>}
                                  </div>
                                  
                                  {cDay.hasData && (
@@ -2079,44 +2079,44 @@ export default function App() {
                                        </span>
                                      </div>
                                      
-                                     <div className="hidden sm:flex flex-col gap-1 border-t border-slate-700/60 pt-2 mt-1">
+                                     <div className="hidden sm:flex flex-col gap-1 border-t border-slate-200/80 pt-2 mt-1">
                                        <div className="flex justify-between items-center text-[9px] font-bold">
-                                         <span className="text-slate-500 uppercase tracking-widest">Spnd</span>
-                                         <span className="text-rose-400 truncate pl-1" title={formatCurrency(cDay.spend)}>{formatCurrency(cDay.spend)}</span>
+                                         <span className="text-slate-400 uppercase tracking-widest">Spnd</span>
+                                         <span className="text-rose-500 truncate pl-1" title={formatCurrency(cDay.spend)}>{formatCurrency(cDay.spend)}</span>
                                        </div>
                                        <div className="flex justify-between items-center text-[9px] font-bold">
-                                         <span className="text-slate-500 uppercase tracking-widest">Comm</span>
-                                         <span className="text-emerald-400 truncate pl-1" title={formatCurrency(cDay.commission)}>{formatCurrency(cDay.commission)}</span>
+                                         <span className="text-slate-400 uppercase tracking-widest">Comm</span>
+                                         <span className="text-emerald-500 truncate pl-1" title={formatCurrency(cDay.commission)}>{formatCurrency(cDay.commission)}</span>
                                        </div>
                                      </div>
                                    </div>
                                  )}
                                  
                                  {cDay.hasData && (
-                                    <div className={`absolute ${tooltipPosClass} hidden group-hover:flex flex-col bg-[#020617]/95 backdrop-blur-xl text-white text-[10px] p-3.5 rounded-2xl w-48 z-[100] shadow-2xl shadow-black/60 border border-slate-700 pointer-events-none scale-0 group-hover:scale-100 transition-transform duration-200 ease-out`}>
+                                    <div className={`absolute ${tooltipPosClass} hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-xl text-white text-[10px] p-3.5 rounded-2xl w-48 z-[100] shadow-2xl shadow-slate-900/30 border border-slate-700 pointer-events-none scale-0 group-hover:scale-100 transition-transform duration-200 ease-out`}>
                                       <div className="font-black text-xs border-b border-slate-700/80 pb-1.5 mb-2 text-center text-white">{formatDate(new Date(cDay.dateStr))}</div>
                                       
                                       <div className="flex justify-between items-center mb-1.5">
-                                        <span className="text-slate-400 font-medium">Meta Klik/Order</span>
-                                        <span className="font-bold"><span className="text-sky-400">{formatNumber(cDay.metaClicks)}</span> <span className="text-slate-600">|</span> <span className="text-orange-400">{formatNumber(cDay.shopeeOrders)}</span></span>
+                                        <span className="text-slate-300 font-medium">Meta Klik/Order</span>
+                                        <span className="font-bold"><span className="text-sky-300">{formatNumber(cDay.metaClicks)}</span> <span className="text-slate-500">|</span> <span className="text-orange-300">{formatNumber(cDay.shopeeOrders)}</span></span>
                                       </div>
                                       
                                       <div className="flex justify-between items-center mb-1.5">
-                                        <span className="text-slate-400 font-medium">Ad Spend</span>
-                                        <span className="font-bold text-rose-400">{formatCurrency(cDay.spend)}</span>
+                                        <span className="text-slate-300 font-medium">Ad Spend</span>
+                                        <span className="font-bold text-rose-300">{formatCurrency(cDay.spend)}</span>
                                       </div>
                                       
                                       <div className="flex justify-between items-center mb-1.5">
-                                        <span className="text-slate-400 font-medium">Komisi</span>
-                                        <span className="font-bold text-emerald-400">{formatCurrency(cDay.commission)}</span>
+                                        <span className="text-slate-300 font-medium">Komisi</span>
+                                        <span className="font-bold text-emerald-300">{formatCurrency(cDay.commission)}</span>
                                       </div>
                                       
                                       <div className="flex justify-between items-center mb-2.5 border-b border-slate-700/80 pb-2">
-                                        <span className="text-slate-400 font-medium">GMV</span>
-                                        <span className="font-bold text-slate-300">{formatCurrency(cDay.gmv)}</span>
+                                        <span className="text-slate-300 font-medium">GMV</span>
+                                        <span className="font-bold text-slate-100">{formatCurrency(cDay.gmv)}</span>
                                       </div>
                                       
-                                      <div className={`flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-xl border border-white/5 ${cDay.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                      <div className={`flex justify-between items-center bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/10 ${cDay.profit >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
                                         <span className="font-black uppercase tracking-widest text-[9px]">{cDay.profit >= 0 ? 'Profit' : 'Rugi'}</span>
                                         <span className="font-black text-xs">{cDay.profit > 0 ? '+' : ''}{formatCurrency(cDay.profit)}</span>
                                       </div>
@@ -2138,23 +2138,23 @@ export default function App() {
         {activeTab === 'table' && (
           <div className="animate-in slide-in-from-bottom-4 duration-500">
             {/* TABEL PERFORMA TAG */}
-            <div className="bg-[#0f172a] rounded-3xl shadow-lg shadow-black/20 border border-slate-800 overflow-hidden flex flex-col">
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
               
               {/* Toolbar Atas Tabel */}
-              <div className="p-5 border-b border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#0f172a] relative z-10">
+              <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="bg-gradient-to-br from-orange-500 to-rose-600 p-2 rounded-xl text-white shadow-sm"><TrendingUp size={22} /></div>
                   <div>
-                    <h2 className="text-xl font-black text-white tracking-tight">Kinerja Tag Kombinasi</h2>
-                    <p className="text-[11px] font-medium text-slate-400 mt-0.5">Klik Nama Tag (teks ungu) untuk detail data per hari.</p>
+                    <h2 className="text-xl font-black text-slate-800 tracking-tight">Kinerja Tag Kombinasi</h2>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Klik Nama Tag (teks ungu) untuk detail data per hari.</p>
                   </div>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto mt-2 lg:mt-0">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <span className="text-sm font-bold text-slate-400 hidden sm:block">Filter Tanggal:</span>
+                    <span className="text-sm font-bold text-slate-600 hidden sm:block">Filter Tanggal:</span>
                     <select
-                      className="flex-1 sm:flex-none text-sm border border-slate-700 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-slate-800 shadow-sm font-bold text-white cursor-pointer min-w-[200px]"
+                      className="flex-1 sm:flex-none text-sm border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-white shadow-sm font-bold text-slate-700 cursor-pointer min-w-[200px]"
                       value={tagTableDateFilter}
                       onChange={(e) => setTagTableDateFilter(e.target.value)}
                     >
@@ -2168,24 +2168,24 @@ export default function App() {
                   {/* Tombol Sensor Nama */}
                   <button 
                     onClick={() => setIsNamesHidden(!isNamesHidden)}
-                    className="text-xs text-slate-300 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-700 font-bold shadow-sm w-full sm:w-auto transition-colors"
+                    className="text-xs text-slate-600 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-200 font-bold shadow-sm w-full sm:w-auto transition-colors"
                     title="Sembunyikan nama tag dan campaign dari layar"
                   >
-                    {isNamesHidden ? <EyeOff size={16} className="text-rose-400" /> : <Eye size={16} className="text-slate-400" />}
+                    {isNamesHidden ? <EyeOff size={16} className="text-rose-500" /> : <Eye size={16} className="text-slate-500" />}
                     <span className="hidden sm:block">{isNamesHidden ? 'Buka Sensor' : 'Sensor Nama'}</span>
                   </button>
 
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-2 bg-slate-900 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-800 font-bold shadow-sm w-full sm:w-auto">
-                    <GripHorizontal size={16} className="text-slate-500" /> Swipe Horizontal
+                  <div className="text-xs text-slate-500 flex items-center justify-center gap-2 bg-slate-50 px-4 py-2.5 sm:py-2 rounded-xl border border-slate-200 font-bold shadow-sm w-full sm:w-auto">
+                    <GripHorizontal size={16} className="text-slate-400" /> Swipe Horizontal
                   </div>
                 </div>
               </div>
 
               {/* PANEL ADD 1 BY 1 & MENGELOLA TAG */}
-              <div id="step-add-tag" className="px-5 py-4 border-b border-slate-800 bg-slate-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
+              <div id="step-add-tag" className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
                 <div className="flex flex-col sm:flex-row gap-2 w-full max-w-lg relative z-20">
                   <select
-                    className="flex-1 text-sm border border-slate-700 rounded-xl px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-slate-800 shadow-sm font-bold text-white"
+                    className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 bg-white shadow-sm font-bold text-slate-700"
                     value={selectedTagToAdd}
                     onChange={(e) => setSelectedTagToAdd(e.target.value)}
                   >
@@ -2199,7 +2199,7 @@ export default function App() {
                   </select>
                   <button
                     onClick={handleAddTag}
-                    className="bg-white hover:bg-slate-200 text-slate-900 px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-lg shadow-white/10 disabled:opacity-50 disabled:hover:translate-y-0"
+                    className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:hover:translate-y-0"
                     disabled={!selectedTagToAdd}
                   >
                     <PlusCircle size={18} /> Tambah Tag
@@ -2209,21 +2209,21 @@ export default function App() {
                 <div className="flex items-center gap-3 relative z-20">
                   <button 
                     onClick={() => setVisibleTags(aggregatedTags.map(t => t.tag))} 
-                    className="text-xs text-violet-300 hover:text-white font-bold px-4 py-2 bg-violet-900/30 hover:bg-violet-600 border border-violet-800/50 hover:border-violet-500 rounded-xl transition-colors whitespace-nowrap shadow-sm"
+                    className="text-xs text-violet-700 hover:text-white font-bold px-4 py-2 bg-violet-100 hover:bg-violet-600 border border-violet-200 hover:border-violet-500 rounded-xl transition-colors whitespace-nowrap shadow-sm"
                     disabled={aggregatedTags.length === 0}
                   >
                     Tampilkan Semua ({aggregatedTags.length})
                   </button>
                   <button 
                     onClick={() => setVisibleTags([])} 
-                    className="text-xs text-rose-400 hover:text-white font-bold px-4 py-2 bg-rose-900/20 hover:bg-rose-600 border border-rose-800/50 hover:border-rose-500 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+                    className="text-xs text-rose-600 hover:text-white font-bold px-4 py-2 bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-500 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm"
                   >
                     <Trash2 size={16} /> Kosongkan
                   </button>
                 </div>
               </div>
 
-              {/* CONTAINER TABEL UTAMA - DARK HEADER THEME */}
+              {/* CONTAINER TABEL UTAMA */}
               <div 
                 id="step-table"
                 ref={scrollRef}
@@ -2231,59 +2231,59 @@ export default function App() {
                 onMouseLeave={onMouseLeave}
                 onMouseUp={onMouseUp}
                 onMouseMove={onMouseMove}
-                className={`overflow-x-auto select-none relative bg-[#0f172a] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800`}
+                className={`overflow-x-auto select-none relative bg-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-50`}
               >
                 <table className="min-w-max w-full text-xs text-left border-collapse">
                   <thead className="font-bold">
                     <tr>
                       {/* TH PERTAMA */}
-                      <th className="px-4 py-3 w-64 border-r border-slate-800 border-b-[3px] border-b-slate-700 bg-slate-900 text-white sticky top-0 left-0 z-30 shadow-[1px_0_0_0_#1e293b]">
+                      <th className="px-4 py-3 w-64 border-r border-slate-200 border-b-[3px] border-b-slate-300 bg-slate-50 text-slate-800 sticky top-0 left-0 z-30 shadow-[1px_0_0_0_#e2e8f0]">
                         <div className="flex flex-col gap-1.5">
                           <span className="text-[13px] tracking-wide">Tag Link Shopee &<br/>Kaitan Campaign Meta</span>
-                          <label className="flex items-center gap-1.5 mt-1 cursor-pointer w-fit group bg-slate-800 p-1.5 rounded-lg border border-slate-700">
+                          <label className="flex items-center gap-1.5 mt-1 cursor-pointer w-fit group bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
                             <input 
                               type="checkbox" 
-                              className="rounded text-violet-500 focus:ring-violet-500 w-3.5 h-3.5 cursor-pointer bg-slate-900 border-slate-600"
+                              className="rounded text-violet-500 focus:ring-violet-500 w-3.5 h-3.5 cursor-pointer border-slate-300"
                               checked={filterActiveCampaigns}
                               onChange={(e) => setFilterActiveCampaigns(e.target.checked)}
                             />
-                            <span className="text-[10px] font-medium text-slate-300 group-hover:text-white transition-colors">Tampilkan yg aktif saja</span>
+                            <span className="text-[10px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors">Tampilkan yg aktif saja</span>
                           </label>
                         </div>
                       </th>
                       
                       {/* KOLOM META ADS */}
-                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Biaya Iklan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">PPN {ppnPercentage}%<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Taksiran Meta)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Klik Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-blue-300 border-b-[3px] border-b-blue-500 border-r border-r-slate-700 sticky top-0 z-20">Avg CTR<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Biaya Iklan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">PPN {ppnPercentage}%<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Taksiran Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Klik Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-blue-500 border-r border-r-slate-200 sticky top-0 z-20">Avg CTR<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       
                       {/* KOLOM SHOPEE */}
-                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Klik Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Pesanan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Unik Resi)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 sticky top-0 z-20">GMV<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Nilai Pembelian)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-orange-300 border-b-[3px] border-b-orange-500 border-r border-r-slate-700 sticky top-0 z-20">Total Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Klik Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Pesanan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Unik Resi)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-orange-500 sticky top-0 z-20">GMV<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Nilai Pembelian)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-orange-500 border-r border-r-slate-200 sticky top-0 z-20">Total Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
                       
                       {/* KOLOM RATE KONVERSI */}
-                      <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Rate Klik-&gt;Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Klik Meta ke Shopee)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-teal-300 border-b-[3px] border-b-teal-500 border-r border-r-slate-700 sticky top-0 z-20">Rate Shopee-&gt;Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Shopee ke Checkout)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Rate Klik-&gt;Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Klik Meta ke Shopee)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-teal-500 border-r border-r-slate-200 sticky top-0 z-20">Rate Shopee-&gt;Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Shopee ke Checkout)</span></th>
 
                       {/* KOLOM ROI & KEUNTUNGAN */}
-                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">Keuntungan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Komisi-Spent-PPN)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">ROI<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return on Investment)</span></th>
-                      <th className="px-3 py-3 bg-slate-800 text-emerald-300 border-b-[3px] border-b-emerald-500 border-r border-r-slate-700 sticky top-0 z-20">ROAS<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return On Ads Spend)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">Keuntungan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Komisi-Spent-PPN)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">ROI<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return on Investment)</span></th>
+                      <th className="px-3 py-3 bg-slate-50 text-slate-700 border-b-[3px] border-b-emerald-500 border-r border-r-slate-200 sticky top-0 z-20">ROAS<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return On Ads Spend)</span></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 bg-[#0f172a] relative z-0">
+                  <tbody className="divide-y divide-slate-100 bg-white relative z-0">
                     
                     {displayedTagsInTable.length === 0 ? (
                       <tr>
                         <td colSpan="15" className="px-4 py-32 text-center">
-                          <div className="flex flex-col items-center justify-center text-slate-500">
-                            <LayoutList size={56} className="mb-5 opacity-30 text-violet-400" />
-                            <h3 className="text-xl font-black text-slate-300 mb-2 tracking-tight">Data Tabel Kosong</h3>
-                            <p className="text-sm font-medium">Silakan pilih dan <b className="text-white bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">Tambah Tag</b> melalui menu dropdown di atas tabel.</p>
+                          <div className="flex flex-col items-center justify-center text-slate-400">
+                            <LayoutList size={56} className="mb-5 opacity-40 text-violet-500" />
+                            <h3 className="text-xl font-black text-slate-700 mb-2 tracking-tight">Data Tabel Kosong</h3>
+                            <p className="text-sm font-medium">Silakan pilih dan <b className="text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Tambah Tag</b> melalui menu dropdown di atas tabel.</p>
                           </div>
                         </td>
                       </tr>
@@ -2300,25 +2300,25 @@ export default function App() {
                         let rateL2S_Str = item.rateLinkShopee === Infinity ? '∞' : `${item.rateLinkShopee.toFixed(2)}%`;
 
                         // Logika Warna Dinamis untuk Rate Klik -> Shopee
-                        let rateColorClass = "text-slate-300";
+                        let rateColorClass = "text-slate-700";
                         if (item.rateLinkShopee === Infinity || item.rateLinkShopee >= 80) {
-                          rateColorClass = "text-emerald-400";
+                          rateColorClass = "text-emerald-600";
                         } else if (item.rateLinkShopee >= 65) {
-                          rateColorClass = "text-amber-400"; 
+                          rateColorClass = "text-amber-600"; 
                         } else {
-                          rateColorClass = "text-rose-400";
+                          rateColorClass = "text-rose-600";
                         }
 
                         return (
-                          <tr key={idx} className="group transition-colors relative z-0 hover:bg-slate-800/70">
+                          <tr key={idx} className="group transition-colors relative z-0 hover:bg-slate-50">
                             
-                            {/* TD PERTAMA (Sticky kiri) - Tetap terang untuk kontras */}
-                            <td className="px-4 py-3.5 align-middle border-r border-slate-800 bg-[#0f172a] sticky left-0 z-10 group-hover:bg-slate-800/80 shadow-[1px_0_0_0_#1e293b]">
+                            {/* TD PERTAMA (Sticky kiri) */}
+                            <td className="px-4 py-3.5 align-middle border-r border-slate-200 bg-white sticky left-0 z-10 group-hover:bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">
                               
                               <div className="flex justify-between items-start mb-2">
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); setSelectedTagForModal(item.tag); }}
-                                  className="font-black text-violet-400 hover:text-violet-300 text-[13px] text-left hover:underline flex items-center gap-1.5 transition-colors"
+                                  className="font-black text-violet-700 hover:text-violet-600 text-[13px] text-left hover:underline flex items-center gap-1.5 transition-colors"
                                   title="Klik untuk lihat detail harian"
                                 >
                                   {isNamesHidden ? '******' : (item.tag || '<Tanpa Tag>')} <ExternalLink size={12} className="opacity-60" />
@@ -2326,7 +2326,7 @@ export default function App() {
                                 
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); setVisibleTags(visibleTags.filter(t => t !== item.tag)); }} 
-                                  className="text-slate-500 hover:text-rose-400 hover:bg-rose-900/30 rounded p-1 transition-colors"
+                                  className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded p-1 transition-colors"
                                   title="Hapus dari tabel"
                                 >
                                   <X size={14} />
@@ -2335,9 +2335,9 @@ export default function App() {
                               
                               <div className="flex flex-wrap gap-1.5 mb-3">
                                 {item.linkedCampaigns.map(c => (
-                                  <span key={c} className="inline-flex items-center gap-1 bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded-md max-w-[200px] shadow-sm">
+                                  <span key={c} className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold px-2 py-1 rounded-md max-w-[200px] shadow-sm">
                                     <span className="truncate" title={c}>{isNamesHidden ? '******' : c}</span>
-                                    <button onClick={() => unlinkCampaign(item.tag, c)} className="hover:text-rose-400 focus:outline-none rounded-full p-px opacity-80 hover:opacity-100 transition-colors bg-white/10">
+                                    <button onClick={() => unlinkCampaign(item.tag, c)} className="hover:text-rose-600 focus:outline-none rounded-full p-px opacity-60 hover:opacity-100 transition-colors bg-black/5">
                                       <X size={10} />
                                     </button>
                                   </span>
@@ -2346,7 +2346,7 @@ export default function App() {
 
                               <div className="relative" onMouseDown={(e) => e.stopPropagation()}>
                                 <select 
-                                  className="w-full max-w-[200px] text-[10px] border border-violet-800/50 rounded-xl py-1.5 px-3 bg-violet-900/20 text-violet-300 font-bold focus:ring-2 focus:ring-violet-500/50 outline-none shadow-sm hover:bg-violet-900/40 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-violet-900/20"
+                                  className="w-full max-w-[200px] text-[10px] border border-violet-200 rounded-xl py-1.5 px-3 bg-violet-50 text-violet-700 font-bold focus:ring-2 focus:ring-violet-500/50 outline-none shadow-sm hover:bg-violet-100 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-violet-50"
                                   onChange={(e) => {
                                     linkCampaign(item.tag, e.target.value);
                                     e.target.value = ""; 
@@ -2354,7 +2354,7 @@ export default function App() {
                                   defaultValue=""
                                   disabled={item.linkedCampaigns.length >= 1}
                                 >
-                                  <option value="" disabled className="bg-slate-800 text-white">
+                                  <option value="" disabled className="bg-white text-slate-800">
                                     {item.linkedCampaigns.length >= 1 ? 'Maksimal 1 Campaign Terkait' : '+ Kaitkan Campaign Meta...'}
                                   </option>
                                   {uniqueCampaignNames
@@ -2362,76 +2362,76 @@ export default function App() {
                                     .map((campaignName, i) => {
                                       if (item.linkedCampaigns.includes(campaignName)) return null;
                                       return (
-                                        <option key={i} value={campaignName} className="bg-slate-800 text-white">
+                                        <option key={i} value={campaignName} className="bg-white text-slate-800">
                                           {campaignName}
                                         </option>
                                       );
                                   })}
-                                  {uniqueCampaignNames.length === 0 && <option value="" disabled className="bg-slate-800 text-white">Data Kosong</option>}
-                                  {filterActiveCampaigns && activeCampaignNames.length === 0 && uniqueCampaignNames.length > 0 && <option value="" disabled className="bg-slate-800 text-white">Tidak ada yg aktif</option>}
+                                  {uniqueCampaignNames.length === 0 && <option value="" disabled className="bg-white text-slate-800">Data Kosong</option>}
+                                  {filterActiveCampaigns && activeCampaignNames.length === 0 && uniqueCampaignNames.length > 0 && <option value="" disabled className="bg-white text-slate-800">Tidak ada yg aktif</option>}
                                 </select>
                               </div>
                             </td>
 
                             {/* Kolom Metrik */}
-                            <td className={getTdClass(item.amountSpent, 'amountSpent', 'bg-blue-900/10')}>
-                              <div className="font-bold text-slate-200 text-[13px]">{formatCurrency(item.amountSpent)}</div>
+                            <td className={getTdClass(item.amountSpent, 'amountSpent', 'bg-blue-50/30')}>
+                              <div className="font-bold text-slate-800 text-[13px]">{formatCurrency(item.amountSpent)}</div>
                             </td>
-                            <td className={getTdClass(item.ppn, 'ppn', 'bg-blue-900/10')}>
-                              <div className="font-bold text-[13px] text-blue-400">{formatCurrency(item.ppn)}</div>
+                            <td className={getTdClass(item.ppn, 'ppn', 'bg-blue-50/30')}>
+                              <div className="font-bold text-[13px] text-blue-600">{formatCurrency(item.ppn)}</div>
                             </td>
-                            <td className={getTdClass(item.results, 'metaClicks', 'bg-blue-900/10')}>
-                              <div className="font-black text-slate-200 text-[13px]">{formatNumber(item.results)}</div>
+                            <td className={getTdClass(item.results, 'metaClicks', 'bg-blue-50/30')}>
+                              <div className="font-black text-slate-800 text-[13px]">{formatNumber(item.results)}</div>
                             </td>
-                            <td className={getTdClass(item.cpr, 'cpr', 'bg-blue-900/10')}>
-                              <div className="font-bold text-slate-300 text-[13px]">{formatCurrency(item.cpr)}</div>
+                            <td className={getTdClass(item.cpr, 'cpr', 'bg-blue-50/30')}>
+                              <div className="font-bold text-slate-600 text-[13px]">{formatCurrency(item.cpr)}</div>
                             </td>
-                            <td className={getTdClass(item.ctr, 'ctr', 'bg-blue-900/10 border-r border-slate-800')}>
-                              <div className="font-bold text-slate-300 text-[13px]">{item.ctr.toFixed(2)}%</div>
+                            <td className={getTdClass(item.ctr, 'ctr', 'bg-blue-50/30 border-r border-slate-200')}>
+                              <div className="font-bold text-slate-600 text-[13px]">{item.ctr.toFixed(2)}%</div>
                             </td>
                             
-                            <td className={getTdClass(item.shopeeClicks, 'shopeeClicks', 'bg-orange-900/10')}>
-                              <div className="font-black text-[13px] text-slate-200">{formatNumber(item.shopeeClicks)}</div>
+                            <td className={getTdClass(item.shopeeClicks, 'shopeeClicks', 'bg-orange-50/30')}>
+                              <div className="font-black text-[13px] text-slate-800">{formatNumber(item.shopeeClicks)}</div>
                               {item.minClick && (
                                 <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-500">
                                   {formatShortDate(item.minClick)} - {formatShortDate(item.maxClick)}
                                 </div>
                               )}
                             </td>
-                            <td className={getTdClass(item.shopeeOrders, 'shopeeOrders', 'bg-orange-900/10')}>
-                              <div className="font-black text-[13px] text-white">{formatNumber(item.shopeeOrders)}</div>
+                            <td className={getTdClass(item.shopeeOrders, 'shopeeOrders', 'bg-orange-50/30')}>
+                              <div className="font-black text-[13px] text-slate-900">{formatNumber(item.shopeeOrders)}</div>
                               {item.minOrder && (
                                 <div className="text-[9px] mt-1 font-medium whitespace-nowrap text-slate-500">
                                   {formatShortDate(item.minOrder)} - {formatShortDate(item.maxOrder)}
                                 </div>
                               )}
                             </td>
-                            <td className={getTdClass(item.gmv, 'gmv', 'bg-orange-900/10')}>
-                              <div className="text-[13px] font-black text-slate-200">{formatCurrency(item.gmv)}</div>
+                            <td className={getTdClass(item.gmv, 'gmv', 'bg-orange-50/30')}>
+                              <div className="text-[13px] font-black text-slate-800">{formatCurrency(item.gmv)}</div>
                             </td>
-                            <td className={getTdClass(item.shopeeCommission, 'shopeeCommission', 'bg-orange-900/10 border-r border-slate-800')}>
-                              <div className="text-[13px] font-black text-orange-400">{formatCurrency(item.shopeeCommission)}</div>
+                            <td className={getTdClass(item.shopeeCommission, 'shopeeCommission', 'bg-orange-50/30 border-r border-slate-200')}>
+                              <div className="text-[13px] font-black text-orange-600">{formatCurrency(item.shopeeCommission)}</div>
                             </td>
                             
-                            <td className={getTdClass(item.rateLinkShopee, 'rateLinkShopee', 'bg-teal-900/10')}>
+                            <td className={getTdClass(item.rateLinkShopee, 'rateLinkShopee', 'bg-teal-50/30')}>
                               <div className={`font-black text-[13px] ${rateColorClass}`}>{rateL2S_Str}</div>
                             </td>
-                            <td className={getTdClass(item.rateShopeeOrder, 'rateShopeeOrder', 'bg-teal-900/10 border-r border-slate-800')}>
-                              <div className="font-black text-[13px] text-white">{item.rateShopeeOrder.toFixed(2)}%</div>
+                            <td className={getTdClass(item.rateShopeeOrder, 'rateShopeeOrder', 'bg-teal-50/30 border-r border-slate-200')}>
+                              <div className="font-black text-[13px] text-slate-900">{item.rateShopeeOrder.toFixed(2)}%</div>
                             </td>
                             
-                            <td className={getTdClass(item.keuntungan, 'keuntungan', 'bg-emerald-900/10')}>
-                              <div className={`font-black text-[13px] tracking-tight ${item.keuntungan >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            <td className={getTdClass(item.keuntungan, 'keuntungan', 'bg-emerald-50/30')}>
+                              <div className={`font-black text-[13px] tracking-tight ${item.keuntungan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {item.keuntungan < 0 && '- '}{formatCurrency(Math.abs(item.keuntungan))}
                               </div>
                             </td>
-                            <td className={getTdClass(item.roi, 'roi', 'bg-emerald-900/10')}>
-                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.keuntungan >= 0 ? 'bg-emerald-900/40 text-emerald-400 border-emerald-800/50' : 'bg-rose-900/40 text-rose-400 border-rose-800/50'}`}>
+                            <td className={getTdClass(item.roi, 'roi', 'bg-emerald-50/30')}>
+                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.keuntungan >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
                                 {roiStr}
                               </div>
                             </td>
-                            <td className={getTdClass(item.roas, 'roas', 'bg-emerald-900/10 border-r border-slate-800')}>
-                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.roas >= 0 ? 'bg-emerald-900/40 text-emerald-400 border-emerald-800/50' : 'bg-rose-900/40 text-rose-400 border-rose-800/50'}`}>
+                            <td className={getTdClass(item.roas, 'roas', 'bg-emerald-50/30 border-r border-slate-200')}>
+                              <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.roas >= 0 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
                                 {roasStr}
                               </div>
                             </td>
@@ -2452,36 +2452,36 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
             
             {/* Chart: Tren Pesanan Harian */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-2 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div className="bg-blue-900/30 p-2 rounded-xl text-blue-400 border border-blue-800/50"><BarChart2 size={22} /></div>
-                <h2 className="text-lg font-black text-white tracking-tight">Tren Pesanan Harian</h2>
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-2 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-blue-50 p-2 rounded-xl text-blue-600 border border-blue-100"><BarChart2 size={22} /></div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Tren Pesanan Harian</h2>
               </div>
               
-              <div className="flex items-end gap-3.5 h-[20rem] overflow-x-auto pb-6 pt-24 px-10 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <div className="flex items-end gap-3.5 h-[20rem] overflow-x-auto pb-6 pt-24 px-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 {dailyTrend.map((d, i) => (
                   <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 group relative hover:-translate-y-2 transition-transform cursor-pointer">
-                    <div className="w-14 h-40 bg-slate-800/50 rounded-xl relative flex items-end justify-center hover:bg-slate-700/70 transition-colors border-b-2 border-slate-700">
+                    <div className="w-14 h-40 bg-slate-100 rounded-xl relative flex items-end justify-center hover:bg-slate-200 transition-colors border-b-2 border-slate-200">
                       <div className="w-full bg-blue-500 rounded-t-lg transition-all relative shadow-sm" style={{ height: `${(d.orders / maxDailyOrders) * 100}%`, minHeight: '6px' }}>
                         
                         {/* Tooltip Hover */}
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center justify-center bg-[#020617]/95 backdrop-blur-md text-white text-[11px] py-2 px-3 rounded-xl whitespace-nowrap z-[100] shadow-2xl shadow-black/60 border border-slate-700 pointer-events-none">
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md text-white text-[11px] py-2 px-3 rounded-xl whitespace-nowrap z-[100] shadow-xl shadow-slate-900/20 border border-slate-700 pointer-events-none">
                           <span className="font-black mb-1">{d.orders} Pesanan</span>
                           <span className="text-emerald-400 font-bold border-t border-slate-700 pt-1">{formatCurrency(d.commission)}</span>
                         </div>
                       </div>
                     </div>
-                    <span className="text-[11px] text-slate-400 whitespace-nowrap font-bold">{formatShortDate(d.date)}</span>
+                    <span className="text-[11px] text-slate-500 whitespace-nowrap font-bold">{formatShortDate(d.date)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Chart: Status Pesanan */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div className="bg-rose-900/30 p-2 rounded-xl text-rose-400 border border-rose-800/50"><PieChart size={22} /></div>
-                <h2 className="text-lg font-black text-white tracking-tight">Status Pesanan</h2>
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-rose-50 p-2 rounded-xl text-rose-600 border border-rose-100"><PieChart size={22} /></div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Status Pesanan</h2>
               </div>
               
               <div className="flex flex-col gap-6 pt-2">
@@ -2495,12 +2495,12 @@ export default function App() {
                   return (
                     <div key={i} className="group">
                       <div className="flex justify-between text-xs mb-2">
-                        <span className="font-bold text-slate-300">{st.status}</span>
+                        <span className="font-bold text-slate-700">{st.status}</span>
                         <div className="text-right">
-                          <span className="text-white font-black">{st.count}</span> <span className="text-slate-500 font-medium ml-1">({pct}%)</span>
+                          <span className="text-slate-900 font-black">{st.count}</span> <span className="text-slate-500 font-medium ml-1">({pct}%)</span>
                         </div>
                       </div>
-                      <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner border border-slate-700/50">
+                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner border border-slate-200">
                         <div className={`${colorClass} h-full rounded-full transition-all group-hover:opacity-80`} style={{ width: `${pct}%` }}></div>
                       </div>
                     </div>
@@ -2510,19 +2510,19 @@ export default function App() {
             </div>
 
             {/* Chart: Tren Klik vs Pesanan per Tag */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-3 hover:shadow-md transition-shadow">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 border-b border-slate-800 pb-5">
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 border-b border-slate-100 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="bg-orange-900/30 p-2 rounded-xl text-orange-400 border border-orange-800/50"><TrendingUp size={22} /></div>
-                  <h2 className="text-lg font-black text-white tracking-tight">Tren Klik & Pesanan per Tag</h2>
+                  <div className="bg-orange-50 p-2 rounded-xl text-orange-600 border border-orange-100"><TrendingUp size={22} /></div>
+                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Tren Klik & Pesanan per Tag</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-3 text-[11px] font-bold bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 shadow-sm text-slate-300">
+                  <div className="flex items-center gap-3 text-[11px] font-bold bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 shadow-sm text-slate-600">
                     <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-md bg-blue-500 shadow-sm"></span> Klik Shopee</span>
                     <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-md bg-orange-500 shadow-sm"></span> Pesanan</span>
                   </div>
                   <select
-                    className="text-sm border border-slate-700 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 font-bold text-white max-w-[250px] shadow-sm cursor-pointer bg-slate-800"
+                    className="text-sm border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 font-bold text-slate-800 max-w-[250px] shadow-sm cursor-pointer bg-white"
                     value={currentChartTag}
                     onChange={(e) => setSelectedChartTag(e.target.value)}
                   >
@@ -2534,66 +2534,66 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex items-end gap-3.5 h-[22rem] overflow-x-auto pb-6 pt-32 px-10 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <div className="flex items-end gap-3.5 h-[22rem] overflow-x-auto pb-6 pt-32 px-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 {tagDailyChartData.map((d, i) => {
                   const rate = d.clicks > 0 ? ((d.orders / d.clicks) * 100).toFixed(1) : 0;
                   return (
                     <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 group relative hover:-translate-y-2 transition-transform cursor-pointer">
-                      <div className="w-16 h-40 bg-slate-800/50 rounded-xl flex items-end justify-center gap-1 hover:bg-slate-700/70 transition-colors relative px-1 border-b-2 border-slate-700">
+                      <div className="w-16 h-40 bg-slate-100 rounded-xl flex items-end justify-center gap-1 hover:bg-slate-200 transition-colors relative px-1 border-b-2 border-slate-200">
                         <div className="w-1/2 bg-blue-500 rounded-t-md transition-all shadow-sm" style={{ height: `${(d.clicks / maxTagDailyVal) * 100}%`, minHeight: '6px' }}></div>
                         <div className="w-1/2 bg-orange-500 rounded-t-md transition-all shadow-sm" style={{ height: `${(d.orders / maxTagDailyVal) * 100}%`, minHeight: '6px' }}></div>
                         
                         {/* Tooltip Hover */}
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col bg-[#020617]/95 backdrop-blur-md text-white text-[11px] py-2 px-3.5 rounded-xl whitespace-nowrap z-[100] shadow-2xl shadow-black/60 border border-slate-700 pointer-events-none">
-                          <span className="font-black mb-2 border-b border-slate-700 pb-1.5 text-center text-slate-300">{formatDate(new Date(d.date))}</span>
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col bg-slate-900/95 backdrop-blur-md text-white text-[11px] py-2 px-3.5 rounded-xl whitespace-nowrap z-[100] shadow-xl shadow-slate-900/20 border border-slate-700 pointer-events-none">
+                          <span className="font-black mb-2 border-b border-slate-700 pb-1.5 text-center text-slate-100">{formatDate(new Date(d.date))}</span>
                           <div className="flex justify-between gap-5 mb-1.5">
-                            <span className="text-blue-400 font-medium">Klik Shopee:</span>
+                            <span className="text-blue-300 font-medium">Klik Shopee:</span>
                             <span className="font-bold">{formatNumber(d.clicks)}</span>
                           </div>
                           <div className="flex justify-between gap-5 mb-2 border-b border-slate-700 pb-2">
-                            <span className="text-orange-400 font-medium">Pesanan:</span>
+                            <span className="text-orange-300 font-medium">Pesanan:</span>
                             <span className="font-bold">{formatNumber(d.orders)}</span>
                           </div>
-                          <div className="flex justify-between gap-5 font-black text-[11px] text-teal-400">
+                          <div className="flex justify-between gap-5 font-black text-[11px] text-teal-300">
                             <span>Rate Konversi:</span>
                             <span>{rate}%</span>
                           </div>
                         </div>
                       </div>
-                      <span className="text-[11px] text-slate-400 whitespace-nowrap font-bold">{formatShortDate(d.date)}</span>
+                      <span className="text-[11px] text-slate-500 whitespace-nowrap font-bold">{formatShortDate(d.date)}</span>
                     </div>
                   );
                 })}
                 {tagDailyChartData.length === 0 && (
-                  <div className="w-full flex justify-center items-center h-full text-slate-500 text-sm font-bold">Tidak ada data harian untuk tag yang dipilih.</div>
+                  <div className="w-full flex justify-center items-center h-full text-slate-400 text-sm font-bold">Tidak ada data harian untuk tag yang dipilih.</div>
                 )}
               </div>
             </div>
 
             {/* List: Top 10 Tags */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-3 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div className="bg-amber-900/30 p-2 rounded-xl text-amber-400 border border-amber-800/50"><Trophy size={22} /></div>
-                <h2 className="text-lg font-black text-white tracking-tight">Top 10 Tag Tertinggi (Berdasarkan Komisi)</h2>
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-amber-50 p-2 rounded-xl text-amber-600 border border-amber-100"><Trophy size={22} /></div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Top 10 Tag Tertinggi (Berdasarkan Komisi)</h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8 pt-2">
                 {topTags.map((tag, i) => (
                   <div key={i} className="flex flex-col justify-center group hover:scale-[1.02] transition-transform">
                     <div className="flex justify-between items-end text-sm mb-2">
-                      <span className="font-black text-slate-200 truncate pr-3 text-[15px]" title={tag.tag}>
+                      <span className="font-black text-slate-800 truncate pr-3 text-[15px]" title={tag.tag}>
                         <span className="text-amber-500 font-black mr-1.5">#{i + 1}</span> 
                         {tag.tag || '<Tanpa Tag>'}
                       </span>
-                      <span className="text-emerald-400 font-black whitespace-nowrap text-base">{formatCurrency(tag.shopeeCommission)}</span>
+                      <span className="text-emerald-600 font-black whitespace-nowrap text-base">{formatCurrency(tag.shopeeCommission)}</span>
                     </div>
                     
-                    <div className="flex justify-between text-[11px] text-slate-400 mb-2.5 font-bold">
+                    <div className="flex justify-between text-[11px] text-slate-500 mb-2.5 font-bold">
                       <span>{formatNumber(tag.shopeeClicks)} Klik • {formatNumber(tag.shopeeOrders)} Pesanan</span>
-                      <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md text-slate-300">Avg {formatCurrency(tag.avgComm)}</span>
+                      <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md text-slate-600">Avg {formatCurrency(tag.avgComm)}</span>
                     </div>
 
-                    <div className="w-full bg-slate-800 rounded-full h-3 shadow-inner overflow-hidden border border-slate-700/50">
+                    <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden border border-slate-200">
                       <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all" style={{ width: `${(tag.shopeeCommission / maxTagComm) * 100}%` }}></div>
                     </div>
                   </div>
@@ -2602,10 +2602,10 @@ export default function App() {
             </div>
 
             {/* List: Top 10 Produk Terjual */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-3 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div className="bg-cyan-900/30 p-2 rounded-xl text-cyan-400 border border-cyan-800/50"><Package size={22} /></div>
-                <h2 className="text-lg font-black text-white tracking-tight">Top 10 Produk Terjual (Berdasarkan Qty)</h2>
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-cyan-50 p-2 rounded-xl text-cyan-600 border border-cyan-100"><Package size={22} /></div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Top 10 Produk Terjual (Berdasarkan Qty)</h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8 pt-2">
@@ -2614,26 +2614,26 @@ export default function App() {
                    return (
                     <div key={i} className="flex flex-col justify-center group hover:scale-[1.02] transition-transform">
                       <div className="flex justify-between items-start text-sm mb-2 gap-3">
-                        <span className="font-black text-slate-200 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
+                        <span className="font-black text-slate-800 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
                           <span className="text-cyan-500 font-black mr-1.5">#{i + 1}</span> 
                           {prod.name}
                         </span>
-                        <span className="text-cyan-400 font-black whitespace-nowrap text-base">{formatNumber(prod.qty)} <span className="text-[10px] text-slate-500 font-bold">Qty</span></span>
+                        <span className="text-cyan-600 font-black whitespace-nowrap text-base">{formatNumber(prod.qty)} <span className="text-[10px] text-slate-500 font-bold">Qty</span></span>
                       </div>
                       
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-2.5 font-bold">
+                      <div className="flex justify-between text-[11px] text-slate-500 mb-2.5 font-bold">
                         <span>GMV: {formatCurrency(prod.gmv)}</span>
-                        <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md text-emerald-400">Komisi: {formatCurrency(prod.commission)}</span>
+                        <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-emerald-700">Komisi: {formatCurrency(prod.commission)}</span>
                       </div>
 
-                      <div className="w-full bg-slate-800 rounded-full h-3 shadow-inner overflow-hidden border border-slate-700/50">
+                      <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden border border-slate-200">
                         <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all" style={{ width: `${(prod.qty / maxQty) * 100}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
                 {topProducts.length === 0 && (
-                  <div className="col-span-full text-center text-slate-500 text-sm font-bold py-8">
+                  <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
                     Data produk belum tersedia. Pastikan kolom "Nama Produk" atau "Nama Barang" ada di file CSV Anda.
                   </div>
                 )}
@@ -2641,10 +2641,10 @@ export default function App() {
             </div>
 
             {/* List: Top 10 Produk Terjual (Berdasarkan Komisi) */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-3 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div className="bg-emerald-900/30 p-2 rounded-xl text-emerald-400 border border-emerald-800/50"><DollarSign size={22} /></div>
-                <h2 className="text-lg font-black text-white tracking-tight">Top 10 Produk Terjual (Berdasarkan Komisi)</h2>
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-5">
+                <div className="bg-emerald-50 p-2 rounded-xl text-emerald-600 border border-emerald-100"><DollarSign size={22} /></div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Top 10 Produk Terjual (Berdasarkan Komisi)</h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8 pt-2">
@@ -2653,26 +2653,26 @@ export default function App() {
                    return (
                     <div key={i} className="flex flex-col justify-center group hover:scale-[1.02] transition-transform">
                       <div className="flex justify-between items-start text-sm mb-2 gap-3">
-                        <span className="font-black text-slate-200 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
+                        <span className="font-black text-slate-800 line-clamp-2 text-[13px] leading-tight" title={prod.name}>
                           <span className="text-emerald-500 font-black mr-1.5">#{i + 1}</span> 
                           {prod.name}
                         </span>
-                        <span className="text-emerald-400 font-black whitespace-nowrap text-base">{formatCurrency(prod.commission)}</span>
+                        <span className="text-emerald-600 font-black whitespace-nowrap text-base">{formatCurrency(prod.commission)}</span>
                       </div>
                       
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-2.5 font-bold">
+                      <div className="flex justify-between text-[11px] text-slate-500 mb-2.5 font-bold">
                         <span>GMV: {formatCurrency(prod.gmv)}</span>
-                        <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md text-cyan-400">Terjual: {formatNumber(prod.qty)} Qty</span>
+                        <span className="bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-md text-cyan-700">Terjual: {formatNumber(prod.qty)} Qty</span>
                       </div>
 
-                      <div className="w-full bg-slate-800 rounded-full h-3 shadow-inner overflow-hidden border border-slate-700/50">
+                      <div className="w-full bg-slate-100 rounded-full h-3 shadow-inner overflow-hidden border border-slate-200">
                         <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all" style={{ width: `${(prod.commission / maxComm) * 100}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
                 {topProductsByComm.length === 0 && (
-                  <div className="col-span-full text-center text-slate-500 text-sm font-bold py-8">
+                  <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
                     Data produk belum tersedia. Pastikan kolom "Nama Produk" atau "Nama Barang" ada di file CSV Anda.
                   </div>
                 )}
@@ -2680,14 +2680,14 @@ export default function App() {
             </div>
 
             {/* Chart: Persentase Kategori Produk */}
-            <div className="bg-[#0f172a] p-7 rounded-3xl shadow-sm border border-slate-800/80 lg:col-span-3 hover:shadow-md transition-shadow">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 border-b border-slate-800 pb-5">
+            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 lg:col-span-3 hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 border-b border-slate-100 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="bg-fuchsia-900/30 p-2 rounded-xl text-fuchsia-400 border border-fuchsia-800/50"><PieChart size={22} /></div>
-                  <h2 className="text-lg font-black text-white tracking-tight">Persentase Kategori Produk</h2>
+                  <div className="bg-fuchsia-50 p-2 rounded-xl text-fuchsia-600 border border-fuchsia-100"><PieChart size={22} /></div>
+                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Persentase Kategori Produk</h2>
                 </div>
                 <select
-                  className="text-sm border border-slate-700 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 font-bold text-white max-w-[250px] shadow-sm cursor-pointer bg-slate-800"
+                  className="text-sm border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 font-bold text-slate-800 max-w-[250px] shadow-sm cursor-pointer bg-white"
                   value={selectedCategoryLevel}
                   onChange={(e) => setSelectedCategoryLevel(e.target.value)}
                 >
@@ -2703,19 +2703,19 @@ export default function App() {
                   return (
                     <div key={i} className="group">
                       <div className="flex justify-between text-xs mb-2">
-                        <span className="font-bold text-slate-300 truncate pr-4" title={cat.name}>{cat.name}</span>
+                        <span className="font-bold text-slate-700 truncate pr-4" title={cat.name}>{cat.name}</span>
                         <div className="text-right whitespace-nowrap">
-                          <span className="text-white font-black">{formatNumber(cat.count)}</span> <span className="text-slate-500 font-medium ml-1">({pct}%)</span>
+                          <span className="text-slate-900 font-black">{formatNumber(cat.count)}</span> <span className="text-slate-500 font-medium ml-1">({pct}%)</span>
                         </div>
                       </div>
-                      <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner border border-slate-700/50">
+                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner border border-slate-200">
                         <div className="bg-gradient-to-r from-fuchsia-500 to-purple-500 h-full rounded-full transition-all group-hover:opacity-80" style={{ width: `${pct}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
                 {categoryStats[selectedCategoryLevel].length === 0 && (
-                   <div className="col-span-full text-center text-slate-500 text-sm font-bold py-8">
+                   <div className="col-span-full text-center text-slate-400 text-sm font-bold py-8">
                      Data kategori belum tersedia di file CSV Anda.
                    </div>
                 )}
@@ -2727,14 +2727,14 @@ export default function App() {
 
         {/* TAB 4: SECTION EXPORT LAPORAN */}
         {activeTab === 'export' && (
-          <div className="bg-[#0f172a] rounded-3xl shadow-lg shadow-black/20 border border-slate-800/80 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
-            <div className="p-6 sm:p-8 border-b border-slate-800 flex items-center gap-4 bg-slate-900/50">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50">
               <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3 rounded-2xl text-white shadow-sm">
                 <FileSpreadsheet size={28} strokeWidth={2} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-white tracking-tight">Export Laporan Bulanan</h2>
-                <p className="text-sm font-medium text-slate-400 mt-1">Unduh data harian dalam format Excel (CSV) atau cetak sebagai PDF.</p>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Export Laporan Bulanan</h2>
+                <p className="text-sm font-medium text-slate-500 mt-1">Unduh data harian dalam format Excel (CSV) atau cetak sebagai PDF.</p>
               </div>
             </div>
 
@@ -2745,7 +2745,7 @@ export default function App() {
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest">1. Pilih Bulan</label>
                   <select
-                    className="w-full text-base border-2 border-slate-700 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-white shadow-sm cursor-pointer bg-slate-800 transition-all"
+                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
                     value={exportMonth}
                     onChange={(e) => setExportMonth(e.target.value)}
                   >
@@ -2757,7 +2757,7 @@ export default function App() {
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest">2. Jenis Laporan</label>
                   <select
-                    className="w-full text-base border-2 border-slate-700 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-white shadow-sm cursor-pointer bg-slate-800 transition-all"
+                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
                     value={exportType}
                     onChange={(e) => setExportType(e.target.value)}
                   >
@@ -2768,29 +2768,29 @@ export default function App() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-800">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100">
                 <button
                   onClick={handleExportPDF}
                   disabled={availableMonths.length === 0}
-                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 shadow-lg shadow-black/20 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   <Printer size={20} /> Cetak / Simpan PDF
                 </button>
                 <button
                   onClick={handleExportCSV}
                   disabled={availableMonths.length === 0}
-                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-emerald-400 bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-800 hover:border-emerald-500 hover:text-white shadow-lg transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-500 hover:text-white shadow-sm transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   <Download size={20} /> Unduh File Excel (CSV)
                 </button>
               </div>
 
               {/* Laporan Preview Info */}
-              <div className="bg-blue-900/20 border border-blue-800/50 p-5 rounded-2xl mt-2 flex items-start gap-4">
-                <Lightbulb size={24} className="text-blue-400 shrink-0 mt-0.5" />
+              <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl mt-2 flex items-start gap-4">
+                <Lightbulb size={24} className="text-blue-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-blue-300 mb-1">Informasi Laporan</h4>
-                  <p className="text-xs text-blue-200/70 leading-relaxed">
+                  <h4 className="text-sm font-bold text-blue-800 mb-1">Informasi Laporan</h4>
+                  <p className="text-xs text-blue-700/80 leading-relaxed">
                     {exportType === 'profit' 
                       ? "Laporan 'Rekap Profit' akan merangkum seluruh aktivitas dari Klik Meta, Pesanan Shopee, hingga estimasi ROAS dan Keuntungan (Profit) Bersih per harinya untuk bulan yang dipilih."
                       : "Laporan 'Iklan Meta' hanya akan menampilkan rincian performa Iklan di Facebook/Instagram (Biaya, Impresi, CPC, CTR) tanpa menyertakan konversi Shopee."}
