@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { UploadCloud, X, GripHorizontal, BarChart3, TrendingUp, MousePointerClick, DollarSign, ShoppingCart, Activity, Calendar, ToggleLeft, ToggleRight, BarChart2, PieChart, Trophy, Target, ChevronDown, ChevronUp, LayoutList, LineChart, PlusCircle, Trash2, ExternalLink, HelpCircle, Lightbulb, Heart, AlertTriangle, ShoppingBag, Package, Rocket, Download, FileText, Printer, FileSpreadsheet, Eye, EyeOff } from 'lucide-react';
+import { UploadCloud, X, GripHorizontal, BarChart3, TrendingUp, MousePointerClick, DollarSign, ShoppingCart, Activity, Calendar, ToggleLeft, ToggleRight, BarChart2, PieChart, Trophy, Target, ChevronDown, ChevronUp, LayoutList, LineChart, PlusCircle, Trash2, ExternalLink, HelpCircle, Lightbulb, Heart, AlertTriangle, ShoppingBag, Package, Rocket, Eye, EyeOff } from 'lucide-react';
 
 const MetaIcon = ({ size = 24, className = "", strokeWidth = 2 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth={strokeWidth} fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -65,7 +65,6 @@ export default function App() {
   const [isSyncDate, setIsSyncDate] = useState(true);
   const [summaryDateFilter, setSummaryDateFilter] = useState('all');
   const [ppnPercentage, setPpnPercentage] = useState(11); 
-  const [showMetaAdsTable, setShowMetaAdsTable] = useState(false);
   const [filterActiveCampaigns, setFilterActiveCampaigns] = useState(false);
   const [visibleTags, setVisibleTags] = useState([]);
   const [selectedTagToAdd, setSelectedTagToAdd] = useState('');
@@ -75,44 +74,42 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [tagTableDateFilter, setTagTableDateFilter] = useState('all');
   const [isNamesHidden, setIsNamesHidden] = useState(false);
-  
-  const [exportMonth, setExportMonth] = useState('');
-  const [exportType, setExportType] = useState('profit');
 
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [showMetaWarning, setShowMetaWarning] = useState(false);
 
+  // --- DATA PANDUAN (TOUR) ---
   const tourStepsData = [
     {
-      title: "Selamat Datang!",
-      desc: "Alat ini memadukan data Iklan Meta dengan komisi Shopee Affiliate Anda. Mari mulai dengan mengunggah 3 file Anda (Format CSV maupun Excel/XLSX didukung).",
+      title: "Selamat Datang di Dashboard!",
+      desc: "Alat ini membantu Anda memadukan data Iklan Meta dengan Shopee Affiliate. Siapkan 3 file Excel/CSV: Data Meta Ads (Breakdown by Day), Komisi Shopee, dan Laporan Klik Shopee.",
       icon: <Rocket className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-orange-500 to-rose-600"
     },
     {
-      title: "1. Tab Dashboard Utama",
-      desc: "Setelah data terunggah, di sini Anda bisa memantau Ringkasan Performa (ROAS, GMV, Keuntungan) dan melihat Kalender Profit harian interaktif. Jangan lupa atur PPN Meta Anda!",
+      title: "1. Dashboard & Ringkasan",
+      desc: "Pantau metrik utama seperti GMV, Keuntungan Bersih, dan ROAS (Total Komisi Kotor dibagi Biaya Iklan). Terdapat juga Kalender Profit interaktif untuk memantau untung/rugi per hari.",
       icon: <Activity className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-blue-600 to-cyan-500"
     },
     {
-      title: "2. Tab Performa Tag",
-      desc: "Kaitkan Tag Shopee dengan Campaign Meta Anda di tabel ini. Anda dapat melihat konversi per tag secara detail dan menyaring data spesifik berdasarkan tanggal.",
+      title: "2. Tabel Performa Tag",
+      desc: "Hubungkan Tag Link Shopee Anda dengan Campaign Meta yang sesuai di tabel ini. Anda dapat melihat konversi spesifik per tag, rasio klik ke order, dan estimasi profit masing-masing campaign.",
       icon: <LayoutList className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-teal-500 to-emerald-600"
     },
     {
-      title: "3. Tab Analitik & Visual",
-      desc: "Visualisasikan data Anda! Pantau tren grafik harian, temukan Top 10 Tag, Top 10 Produk terlaris, hingga proporsi kategori produk Anda dengan mudah.",
+      title: "3. Analitik & Visualisasi",
+      desc: "Temukan 'Winning Campaign' Anda! Tab ini menyediakan grafik tren harian, daftar 10 Tag dengan komisi tertinggi, serta daftar produk dan kategori yang paling laris terjual.",
       icon: <PieChart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-indigo-600 to-violet-700"
     },
     {
-      title: "4. Tab Ekspor Laporan",
-      desc: "Butuh laporan bulanan atau ingin mengolah data lebih lanjut? Unduh rekap performa dalam format Excel (CSV) atau cetak langsung menjadi dokumen PDF!",
-      icon: <Download className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
-      color: "from-fuchsia-600 to-pink-700"
+      title: "Privasi 100% Terjamin",
+      desc: "Seluruh proses pembacaan file dan kalkulasi data dilakukan secara LOKAL di browser perangkat Anda. Tidak ada satupun data finansial, nama tag, maupun riwayat pesanan yang dikirim ke server luar.",
+      icon: <Heart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
+      color: "from-[#00a884] to-emerald-700"
     }
   ];
 
@@ -683,10 +680,8 @@ export default function App() {
   useEffect(() => {
     if (availableMonths.length > 0 && !selectedMonth) {
       setSelectedMonth(availableMonths[0]);
-      setExportMonth(availableMonths[0]);
     } else if (availableMonths.length > 0 && !availableMonths.includes(selectedMonth)) {
       setSelectedMonth(availableMonths[0]);
-      setExportMonth(availableMonths[0]);
     }
   }, [availableMonths, selectedMonth]);
 
@@ -1206,182 +1201,6 @@ export default function App() {
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // --- FUNGSI GENERATE EXPORT Laporan ---
-  const getExportData = () => {
-    let title = '';
-    let headers = [];
-    let rows = [];
-    let totalRow = [];
-
-    if (exportType === 'profit') {
-      title = `Rekap Profit Harian - ${formatMonthYear(exportMonth)}`;
-      headers = ['Tanggal', 'Klik Meta', 'Klik Shopee', 'Pesanan', 'GMV (Rp)', 'Ad Spend (Rp)', 'Komisi (Rp)', 'Profit (Rp)', 'ROAS'];
-      
-      let tMetaC = 0, tShopeeC = 0, tOrders = 0, tGmv = 0, tSpend = 0, tComm = 0, tProfit = 0;
-      
-      dailySummaryTrend.filter(d => d.date.startsWith(exportMonth)).forEach(d => {
-        const spend = d.spend;
-        const profit = d.commission - spend;
-        
-        // --- PERUBAHAN RUMUS ROAS EKSPOR ---
-        const roas = spend > 0 ? (d.commission / spend) : (d.commission > 0 ? '∞' : 0);
-        
-        tMetaC += d.metaClicks || 0;
-        tShopeeC += d.shopeeClicks || 0;
-        tOrders += d.shopeeOrders || 0;
-        tGmv += d.gmv || 0;
-        tSpend += spend || 0;
-        tComm += d.commission || 0;
-        tProfit += profit || 0;
-
-        rows.push([
-          formatDate(new Date(d.date)),
-          formatNumber(d.metaClicks || 0),
-          formatNumber(d.shopeeClicks || 0),
-          formatNumber(d.shopeeOrders || 0),
-          formatCurrency(d.gmv || 0),
-          formatCurrency(spend),
-          formatCurrency(d.commission),
-          formatCurrency(profit),
-          roas === '∞' ? '∞' : `${roas.toFixed(2)}x`
-        ]);
-      });
-
-      // --- PERUBAHAN RUMUS ROAS TOTAL EKSPOR ---
-      const totalRoas = tSpend > 0 ? (tComm / tSpend) : (tComm > 0 ? '∞' : 0);
-      totalRow = [
-        'TOTAL BULAN INI',
-        formatNumber(tMetaC),
-        formatNumber(tShopeeC),
-        formatNumber(tOrders),
-        formatCurrency(tGmv),
-        formatCurrency(tSpend),
-        formatCurrency(tComm),
-        formatCurrency(tProfit),
-        totalRoas === '∞' ? '∞' : `${totalRoas.toFixed(2)}x`
-      ];
-
-    } else if (exportType === 'meta') {
-      title = `Laporan Iklan Meta Harian - ${formatMonthYear(exportMonth)}`;
-      headers = ['Tanggal', 'Biaya Iklan (Rp)', 'Impresi', 'Klik Tautan', 'Hasil', 'Avg CPC (Rp)', 'Avg CTR (%)'];
-      
-      const map = {};
-      const ppnMultiplier = 1 + (ppnPercentage / 100);
-      
-      processedMetaAds.filter(r => r['Reporting starts'] && r['Reporting starts'].startsWith(exportMonth)).forEach(r => {
-         const d = r['Reporting starts'];
-         if(!map[d]) map[d] = { spent: 0, impressions: 0, clicks: 0, results: 0 };
-         map[d].spent += parseNum(r['Amount spent (IDR)']) * ppnMultiplier;
-         map[d].impressions += parseNum(r['Impressions']);
-         map[d].clicks += parseNum(r['Link clicks']);
-         map[d].results += parseNum(r['Results']);
-      });
-
-      let tSpend = 0, tImp = 0, tClicks = 0, tRes = 0;
-
-      Object.entries(map).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB)).forEach(([date, d]) => {
-         const cpc = d.results > 0 ? d.spent / d.results : (d.clicks > 0 ? d.spent / d.clicks : 0);
-         const ctr = d.impressions > 0 ? (d.clicks / d.impressions) * 100 : 0;
-         
-         tSpend += d.spent; tImp += d.impressions; tClicks += d.clicks; tRes += d.results;
-
-         rows.push([
-           formatDate(new Date(date)),
-           formatCurrency(d.spent),
-           formatNumber(d.impressions),
-           formatNumber(d.clicks),
-           formatNumber(d.results),
-           formatCurrency(cpc),
-           `${ctr.toFixed(2)}%`
-         ]);
-      });
-
-      const tCpc = tRes > 0 ? tSpend / tRes : (tClicks > 0 ? tSpend / tClicks : 0);
-      const tCtr = tImp > 0 ? (tClicks / tImp) * 100 : 0;
-      totalRow = [
-        'TOTAL BULAN INI',
-        formatCurrency(tSpend),
-        formatNumber(tImp),
-        formatNumber(tClicks),
-        formatNumber(tRes),
-        formatCurrency(tCpc),
-        `${tCtr.toFixed(2)}%`
-      ];
-    }
-
-    return { title, headers, rows, totalRow };
-  };
-
-  const handleExportCSV = () => {
-    const { title, headers, rows, totalRow } = getExportData();
-    if (rows.length === 0) return alert('Tidak ada data untuk diekspor pada bulan ini.');
-
-    const csvContent = "\uFEFF" + [
-      headers.map(h => `"${h}"`).join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')),
-      totalRow.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${title.replaceAll(' ', '_')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleExportPDF = () => {
-    const { title, headers, rows, totalRow } = getExportData();
-    if (rows.length === 0) return alert('Tidak ada data untuk diekspor pada bulan ini.');
-
-    const printWindow = window.open('', '_blank');
-    
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${title}</title>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #1e293b; line-height: 1.5; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
-            h2 { margin: 0 0 5px 0; font-size: 24px; color: #0f172a; }
-            p { margin: 0; color: #64748b; font-size: 14px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px; }
-            th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: right; }
-            th { background-color: #f1f5f9; font-weight: bold; color: #334155; text-align: center; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
-            td:first-child, th:first-child { text-align: left; }
-            .total-row td { font-weight: 900; background-color: #f8fafc; border-top: 2px solid #94a3b8; }
-            .footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
-            @media print {
-              body { padding: 0; }
-              @page { size: landscape; margin: 1cm; }
-            }
-          </style>
-        </head>
-        <body onload="setTimeout(function(){ window.print(); window.close(); }, 500)">
-          <div class="header">
-            <h2>${title}</h2>
-            <p>Laporan Resmi Shopee Affiliate x Meta Dashboard</p>
-          </div>
-          <table>
-            <thead>
-              <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
-            </thead>
-            <tbody>
-              ${rows.map(row => `<tr>${row.map((cell, i) => `<td style="${i===0 ? 'text-align:left;':''}">${cell}</td>`).join('')}</tr>`).join('')}
-              <tr class="total-row">${totalRow.map((cell, i) => `<td style="${i===0 ? 'text-align:left;':''}">${cell}</td>`).join('')}</tr>
-            </tbody>
-          </table>
-          <div class="footer">Diekspor pada: ${new Date().toLocaleString('id-ID')} | Dibuat menggunakan Performance Dashboard by Slow Living Affiliate</div>
-        </body>
-      </html>
-    `;
-    printWindow.document.write(html);
-    printWindow.document.close();
-  };
-
   return (
     <div className="min-h-screen bg-[#efeae2] font-sans text-slate-800 pb-12 relative selection:bg-[#dcf8c6]">
       
@@ -1798,13 +1617,6 @@ export default function App() {
           >
             <LineChart size={18} className={activeTab === 'charts' ? 'text-white' : 'opacity-70'} /> 
             <span className="whitespace-nowrap">Analitik & Visual</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('export')} 
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'export' ? 'bg-[#00a884] text-white shadow-md shadow-[#00a884]/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-[#f0f2f5]'}`}
-          >
-            <Download size={18} className={activeTab === 'export' ? 'text-white' : 'opacity-70'} /> 
-            <span className="whitespace-nowrap">Ekspor Laporan</span>
           </button>
         </div>
 
@@ -2734,83 +2546,6 @@ export default function App() {
               </div>
             </div>
 
-          </div>
-        )}
-
-        {/* TAB 4: SECTION EXPORT LAPORAN */}
-        {activeTab === 'export' && (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center gap-4 bg-[#f0f2f5]">
-              <div className="bg-gradient-to-br from-[#00a884] to-emerald-600 p-3 rounded-2xl text-white shadow-sm">
-                <FileSpreadsheet size={28} strokeWidth={2} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Ekspor Laporan Bulanan</h2>
-                <p className="text-sm font-medium text-slate-500 mt-1">Unduh data harian dalam format Excel (CSV) atau cetak sebagai PDF.</p>
-              </div>
-            </div>
-
-            <div className="p-6 sm:p-8 flex flex-col gap-8">
-              
-              {/* Form Controls */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">1. Pilih Bulan</label>
-                  <select
-                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-[#00a884] focus:ring-4 focus:ring-[#00a884]/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
-                    value={exportMonth}
-                    onChange={(e) => setExportMonth(e.target.value)}
-                  >
-                    {availableMonths.map(m => <option key={m} value={m}>{formatMonthYear(m)}</option>)}
-                    {availableMonths.length === 0 && <option value="" disabled>Belum ada data tersedia</option>}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">2. Jenis Laporan</label>
-                  <select
-                    className="w-full text-base border-2 border-slate-200 rounded-xl px-4 py-3.5 outline-none focus:border-[#00a884] focus:ring-4 focus:ring-[#00a884]/20 font-bold text-slate-800 shadow-sm cursor-pointer bg-white transition-all"
-                    value={exportType}
-                    onChange={(e) => setExportType(e.target.value)}
-                  >
-                    <option value="profit">Rekap Profit Harian (Lengkap)</option>
-                    <option value="meta">Iklan Meta Harian (Khusus Ads)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100">
-                <button
-                  onClick={handleExportPDF}
-                  disabled={availableMonths.length === 0}
-                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-slate-800 bg-white hover:bg-[#f0f2f5] border border-slate-200 shadow-sm transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
-                >
-                  <Printer size={20} /> Cetak / Simpan PDF
-                </button>
-                <button
-                  onClick={handleExportCSV}
-                  disabled={availableMonths.length === 0}
-                  className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-2xl font-black text-[#00a884] bg-[#dcf8c6] hover:bg-[#00a884] border border-[#00a884]/30 hover:border-[#00a884] hover:text-white shadow-sm transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
-                >
-                  <Download size={20} /> Unduh File Excel (CSV)
-                </button>
-              </div>
-
-              {/* Laporan Preview Info */}
-              <div className="bg-[#f0f2f5] border border-[#00a884]/20 p-5 rounded-2xl mt-2 flex items-start gap-4">
-                <Lightbulb size={24} className="text-[#00a884] shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-bold text-[#00a884] mb-1">Informasi Laporan</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {exportType === 'profit' 
-                      ? "Laporan 'Rekap Profit' akan merangkum seluruh aktivitas dari Klik Meta, Pesanan Shopee, hingga estimasi ROAS dan Keuntungan (Profit) Bersih per harinya untuk bulan yang dipilih."
-                      : "Laporan 'Iklan Meta' hanya akan menampilkan rincian performa Iklan di Facebook/Instagram (Biaya, Impresi, CPC, CTR) tanpa menyertakan konversi Shopee."}
-                  </p>
-                </div>
-              </div>
-
-            </div>
           </div>
         )}
 
