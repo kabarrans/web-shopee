@@ -151,11 +151,14 @@ export default function App() {
       if (h === 'campaign name' || h === 'nama kampanye') return 'Campaign name';
       if (h === 'reporting starts' || h === 'awal pelaporan') return 'Reporting starts';
       if (h === 'reporting ends' || h === 'akhir pelaporan') return 'Reporting ends';
-      if (h === 'campaign delivery' || h === 'penayangan kampanye' || h === 'status') return 'Campaign delivery';
+      if (h === 'campaign delivery' || h.includes('penayangan') || h === 'status') return 'Campaign delivery';
       if (h.includes('amount spent') || h.includes('jumlah yang dibelanjakan')) return 'Amount spent (IDR)';
-      if (h === 'link clicks' || h === 'klik tautan') return 'Link clicks';
-      if (h === 'results' || h === 'hasil') return 'Results';
-      if (h === 'impressions' || h === 'impresi') return 'Impressions';
+      
+      // --- PERBAIKAN: MAPPING KOLOM INDONESIA SECARA ROBUST UNTUK TAYANGAN, KLIK, DAN HASIL ---
+      if (h.includes('link clicks') || h.includes('klik tautan') || h.includes('klik (semua)') || h === 'klik') return 'Link clicks';
+      if (h.includes('results') || h === 'hasil') return 'Results';
+      if (h.includes('impressions') || h.includes('impresi') || h.includes('tayangan')) return 'Impressions';
+      
       if (h === 'ctr' || h.includes('ctr') || h.includes('rasio klik')) return 'CTR';
       
       if (h === 'waktu pemesanan' || h === 'order time') return 'Waktu Pemesanan';
@@ -179,6 +182,8 @@ export default function App() {
       if (h === 'klik id' || h === 'click id') return 'Klik ID';
       if (h === 'id pemesanan' || h === 'order id' || h === 'no. pesanan') return 'ID Pemesanan';
       if (h === 'status pesanan' || h === 'order status') return 'Status Pesanan';
+      
+      if (h.includes('media sosial') || h.includes('social media') || h === 'kanal' || h === 'platform' || h === 'sumber traffic' || h === 'sumber' || h === 'source') return 'Sumber Traffic';
       
       return String(rawHeader).trim(); 
     };
@@ -658,7 +663,6 @@ export default function App() {
   // ROAS = Total Komisi (Kotor) / Biaya Iklan
   if (summaryData.totalSpentWithPpn > 0) {
     summaryRoi = `${((summaryProfit / summaryData.totalSpentWithPpn) * 100).toFixed(2)}%`;
-    // ROAS menggunakan Komisi (bukan Profit)
     summaryRoas = `${(summaryData.commission / summaryData.totalSpentWithPpn).toFixed(2)}x`;
   } else if (summaryData.commission > 0) {
     summaryRoi = '∞';
@@ -744,7 +748,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
       }
     });
 
@@ -753,7 +757,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
       }
     });
 
@@ -766,10 +770,25 @@ export default function App() {
       tag = String(tag).replace(/-+$/, ''); 
       
       if (!tagsMap[tag]) {
-         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
       }
       
       tagsMap[tag].clicks += 1;
+
+      let sourceStr = String(row['Sumber Traffic'] || '').toLowerCase();
+      if (!sourceStr) {
+          sourceStr = Object.values(row).join(' ').toLowerCase();
+      }
+
+      if (sourceStr.includes('facebook') || sourceStr.match(/\bfb\b/)) {
+          tagsMap[tag].sources.facebook += 1;
+      } else if (sourceStr.includes('instagram') || sourceStr.match(/\big\b/)) {
+          tagsMap[tag].sources.instagram += 1;
+      } else if (sourceStr.includes('threads')) {
+          tagsMap[tag].sources.threads += 1;
+      } else {
+          tagsMap[tag].sources.other += 1;
+      }
 
       const clickTime = getSafeDateObj(row['Waktu Klik']);
       if (clickTime) tagsMap[tag].clickTimes.push(clickTime.getTime());
@@ -846,20 +865,12 @@ export default function App() {
 
       const amountSpent = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Amount spent (IDR)']), 0);
       const metaClicks = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Link clicks']), 0);
-      const impressions = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Impressions']), 0);
       const results = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Results']), 0);
       
       const cpr = results > 0 ? amountSpent / results : (metaClicks > 0 ? amountSpent / metaClicks : 0);
       
-      let totalCtr = 0;
-      let ctrCount = 0;
-      linkedAdsData.forEach(ad => {
-        if (ad['CTR'] !== undefined && ad['CTR'] !== '' && ad['CTR'] !== '--') {
-          totalCtr += parseNum(ad['CTR']);
-          ctrCount += 1;
-        }
-      });
-      const ctr = ctrCount > 0 ? (totalCtr / ctrCount) : (impressions > 0 ? (metaClicks / impressions) * 100 : 0);
+      const ctrSum = linkedAdsData.reduce((sum, ad) => sum + parseNum(String(ad['CTR'] || '0').replace('%', '')), 0);
+      const ctr = linkedAdsData.length > 0 ? ctrSum / linkedAdsData.length : 0;
 
       const ppn = amountSpent * (ppnPercentage / 100);
       const totalSpentPlusPpn = amountSpent + ppn;
@@ -895,7 +906,8 @@ export default function App() {
         minClick, maxClick, minOrder, maxOrder,
         linkedCampaigns,
         amountSpent, ppn, metaClicks, cpr, ctr, keuntungan, roi, roas,
-        rateLinkShopee, rateShopeeOrder, results
+        rateLinkShopee, rateShopeeOrder, results,
+        sources: d.sources
       };
     }).sort((a, b) => b.shopeeCommission - a.shopeeCommission || b.shopeeOrders - a.shopeeOrders);
   }, [shopeeClicks, processedCommissions, tagMappings, processedMetaAds, ppnPercentage, tagTableDateFilter]);
@@ -2081,7 +2093,8 @@ export default function App() {
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">PPN {ppnPercentage}%<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Estimasi Meta)</span></th>
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Klik Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
-                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 border-r border-r-slate-200 sticky top-0 z-20">Avg CTR<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      
+                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 border-r border-r-slate-200 sticky top-0 z-20">CTR Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       
                       {/* KOLOM SHOPEE */}
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-orange-500 sticky top-0 z-20">Klik Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
@@ -2090,13 +2103,15 @@ export default function App() {
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-orange-500 border-r border-r-slate-200 sticky top-0 z-20">Total Komisi<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Shopee)</span></th>
                       
                       {/* KOLOM RATE KONVERSI */}
-                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Rasio Klik-&gt;Shopee<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Klik Meta ke Shopee)</span></th>
-                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-teal-500 border-r border-r-slate-200 sticky top-0 z-20">Rasio Shopee-&gt;Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Shopee ke Checkout)</span></th>
+                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-teal-500 sticky top-0 z-20">Ratio Klik</th>
+                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-teal-500 border-r border-r-slate-200 sticky top-0 z-20">Ratio Order</th>
 
                       {/* KOLOM ROI & KEUNTUNGAN */}
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">Keuntungan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Komisi-Biaya-PPN)</span></th>
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-emerald-500 sticky top-0 z-20">ROI<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return on Investment)</span></th>
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-emerald-500 border-r border-r-slate-200 sticky top-0 z-20">ROAS<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return On Ads Spend)</span></th>
+                      
+                      <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-indigo-500 sticky top-0 z-20 min-w-[140px]">Sumber Klik<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Facebook, IG, dll)</span></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white relative z-0">
@@ -2257,6 +2272,69 @@ export default function App() {
                             <td className={getTdClass(item.roas, 'roas', 'bg-emerald-50/30 border-r border-slate-200')}>
                               <div className={`font-black inline-block px-2.5 py-1 rounded-lg text-[11px] shadow-sm border ${item.roas >= 0 ? 'bg-[#dcf8c6] text-[#00a884] border-[#00a884]/30' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
                                 {roasStr}
+                              </div>
+                            </td>
+
+                            <td className={getTdClass(null, 'sources', 'bg-indigo-50/30')}>
+                              <div className="flex flex-col gap-1.5 w-full">
+                                {(() => {
+                                  const total = item.sources.facebook + item.sources.instagram + item.sources.threads + item.sources.other;
+                                  if (total === 0) return <span className="text-[10px] text-slate-400 font-medium italic">Data sumber tidak tersedia</span>;
+                                  
+                                  const fbPct = ((item.sources.facebook / total) * 100).toFixed(0);
+                                  const igPct = ((item.sources.instagram / total) * 100).toFixed(0);
+                                  const thPct = ((item.sources.threads / total) * 100).toFixed(0);
+                                  const othPct = ((item.sources.other / total) * 100).toFixed(0);
+
+                                  return (
+                                    <>
+                                      {item.sources.facebook > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-blue-600 w-5">FB</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-blue-500 h-full rounded-full" style={{ width: `${fbPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{fbPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.sources.instagram > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-pink-600 w-5">IG</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full" style={{ width: `${igPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{igPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.sources.threads > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-slate-800 w-5">TH</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-slate-800 h-full rounded-full" style={{ width: `${thPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{thPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.sources.other > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-slate-500 w-5">Oth</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-slate-400 h-full rounded-full" style={{ width: `${othPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{othPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )
+                                })()}
                               </div>
                             </td>
 
