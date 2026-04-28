@@ -148,42 +148,45 @@ export default function App() {
       if (!rawHeader) return '';
       const h = String(rawHeader).toLowerCase().replace(/[\u200B-\u200D\uFEFF"]/g, '').replaceAll('"', '').trim();
       
-      if (h === 'campaign name' || h === 'nama kampanye') return 'Campaign name';
-      if (h === 'reporting starts' || h === 'awal pelaporan') return 'Reporting starts';
-      if (h === 'reporting ends' || h === 'akhir pelaporan') return 'Reporting ends';
-      if (h === 'campaign delivery' || h.includes('penayangan') || h === 'status') return 'Campaign delivery';
+      // --- META ADS ---
+      if (h.includes('campaign name') || h.includes('nama kampanye')) return 'Campaign name';
+      if (h.includes('reporting starts') || h.includes('awal pelaporan')) return 'Reporting starts';
+      if (h.includes('reporting ends') || h.includes('akhir pelaporan')) return 'Reporting ends';
+      if (h.includes('campaign delivery') || h.includes('penayangan') || h === 'status') return 'Campaign delivery';
       if (h.includes('amount spent') || h.includes('jumlah yang dibelanjakan')) return 'Amount spent (IDR)';
       
-      // --- PERBAIKAN: MAPPING KOLOM INDONESIA SECARA ROBUST UNTUK TAYANGAN, KLIK, DAN HASIL ---
+      // --- KLIK, HASIL & IMPRESI ---
       if (h.includes('link clicks') || h.includes('klik tautan') || h.includes('klik (semua)') || h === 'klik') return 'Link clicks';
-      if (h.includes('results') || h === 'hasil') return 'Results';
+      if (h === 'results' || h.includes('results') || h === 'hasil' || h.includes('hasil (')) return 'Results';
       if (h.includes('impressions') || h.includes('impresi') || h.includes('tayangan')) return 'Impressions';
-      
       if (h === 'ctr' || h.includes('ctr') || h.includes('rasio klik')) return 'CTR';
       
-      if (h === 'waktu pemesanan' || h === 'order time') return 'Waktu Pemesanan';
-      if (h === 'waktu klik' || h === 'click time') return 'Waktu Klik';
-      if (h === 'tag_link1' || h === 'tag link 1') return 'Tag_link1';
+      // --- SHOPEE ---
+      if (h.includes('waktu pemesanan') || h.includes('order time')) return 'Waktu Pemesanan';
+      if (h.includes('waktu klik') || h.includes('click time')) return 'Waktu Klik';
+      
+      if (h.includes('klik id') || h.includes('click id')) return 'Klik ID';
+      if (h.includes('id pemesanan') || h.includes('order id') || h.includes('no. pesanan')) return 'ID Pemesanan';
+      if (h.includes('status pesanan') || h.includes('order status')) return 'Status Pesanan';
+      
+      if (h === 'tag_link1' || h === 'tag link 1' || h === 'tag 1') return 'Tag_link1';
       if (h === 'tag_link' || h === 'tag link' || h === 'tag') return 'Tag_link';
       
-      if (h.includes('total komisi per produk') || h.includes('komisi barang shopee')) return 'Total Komisi per Produk(Rp)';
-      if (h.includes('total komisi per pesanan') || h.includes('estimasi komisi') || h.includes('estimated commission')) return 'Total Komisi per Pesanan(Rp)';
-      if (h.includes('nilai pembelian') || h.includes('purchase value') || h.includes('total pembelian') || h.includes('harga pesanan') || h.includes('harga barang')) return 'Nilai Pembelian';
-      if (h === 'jumlah' || h === 'quantity' || h === 'qty' || h === 'jumlah produk' || h === 'jumlah barang') return 'Jumlah Produk';
+      if (h.includes('total komisi per produk') || h.includes('komisi barang') || h.includes('product commission') || h.includes('estimated commission per product')) return 'Total Komisi per Produk(Rp)';
+      if (h.includes('total komisi per pesanan') || h.includes('estimasi komisi') || h.includes('estimated commission') || h.includes('total commission')) return 'Total Komisi per Pesanan(Rp)';
+      if (h.includes('nilai pembelian') || h.includes('purchase value') || h.includes('total pembelian') || h.includes('harga pesanan') || h.includes('order value')) return 'Nilai Pembelian';
+      
+      if (h === 'jumlah' || h === 'quantity' || h === 'qty' || h.includes('jumlah produk') || h.includes('jumlah barang') || h.includes('item count')) return 'Jumlah Produk';
       if (h.includes('nama produk') || h.includes('product name') || h.includes('item name') || h.includes('nama barang')) return 'Nama Produk';
       
-      if (h.includes('l1') && h.includes('kategori')) return 'Kategori L1';
-      if (h.includes('l2') && h.includes('kategori')) return 'Kategori L2';
-      if (h.includes('l3') && h.includes('kategori')) return 'Kategori L3';
+      if (h.includes('l1') && (h.includes('kategori') || h.includes('category'))) return 'Kategori L1';
+      if (h.includes('l2') && (h.includes('kategori') || h.includes('category'))) return 'Kategori L2';
+      if (h.includes('l3') && (h.includes('kategori') || h.includes('category'))) return 'Kategori L3';
       if (h === 'l1' || h === 'l1 global category' || h === 'kategori l1') return 'Kategori L1';
       if (h === 'l2' || h === 'l2 global category' || h === 'kategori l2') return 'Kategori L2';
       if (h === 'l3' || h === 'l3 global category' || h === 'kategori l3') return 'Kategori L3';
 
-      if (h === 'klik id' || h === 'click id') return 'Klik ID';
-      if (h === 'id pemesanan' || h === 'order id' || h === 'no. pesanan') return 'ID Pemesanan';
-      if (h === 'status pesanan' || h === 'order status') return 'Status Pesanan';
-      
-      if (h.includes('media sosial') || h.includes('social media') || h === 'kanal' || h === 'platform' || h === 'sumber traffic' || h === 'sumber' || h === 'source') return 'Sumber Traffic';
+      if (h.includes('media sosial') || h.includes('social media') || h === 'kanal' || h === 'platform' || h.includes('sumber traffic') || h.includes('traffic source') || h === 'sumber' || h === 'source') return 'Sumber Traffic';
       
       return String(rawHeader).trim(); 
     };
@@ -551,6 +554,7 @@ export default function App() {
     let gmv = 0;
     let adSpent = 0;
     let metaResults = 0;
+    let metaClicks = 0;
     let produkTerjual = 0;
     
     const orderIdsSet = new Set();
@@ -597,12 +601,13 @@ export default function App() {
       if (summaryDateFilter === 'all' || d === summaryDateFilter) {
         adSpent += parseNum(r['Amount spent (IDR)']);
         metaResults += parseNum(r['Results']);
+        metaClicks += parseNum(r['Link clicks']);
       }
     });
 
     const totalSpentWithPpn = adSpent * (1 + (ppnPercentage / 100)); 
 
-    return { clicks, orders: orderIdsSet.size, produkTerjual, commission, gmv, totalSpentWithPpn, metaResults };
+    return { clicks, orders: orderIdsSet.size, produkTerjual, commission, gmv, totalSpentWithPpn, metaResults, metaClicks };
   }, [shopeeClicks, processedCommissions, processedMetaAds, summaryDateFilter, ppnPercentage]);
 
   const dailySummaryTrend = useMemo(() => {
@@ -644,7 +649,7 @@ export default function App() {
       if (!d) return;
       if (!map[d]) map[d] = { date: d, commission: 0, spend: 0, gmv: 0, shopeeClicks: 0, metaClicks: 0, orderIdsSet: new Set(), addedOrdersComm: {} };
       map[d].spend += parseNum(r['Amount spent (IDR)']) * ppnMultiplier; 
-      map[d].metaClicks += parseNum(r['Results']);
+      map[d].metaClicks += parseNum(r['Link clicks']);
     });
 
     return Object.values(map).map(d => ({
@@ -867,7 +872,8 @@ export default function App() {
       const metaClicks = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Link clicks']), 0);
       const results = linkedAdsData.reduce((sum, ad) => sum + parseNum(ad['Results']), 0);
       
-      const cpr = results > 0 ? amountSpent / results : (metaClicks > 0 ? amountSpent / metaClicks : 0);
+      const cpc = metaClicks > 0 ? amountSpent / metaClicks : 0;
+      const cpr = results > 0 ? amountSpent / results : 0;
       
       const ctrSum = linkedAdsData.reduce((sum, ad) => sum + parseNum(String(ad['CTR'] || '0').replace('%', '')), 0);
       const ctr = linkedAdsData.length > 0 ? ctrSum / linkedAdsData.length : 0;
@@ -905,8 +911,8 @@ export default function App() {
         maxDiff, minDiff,
         minClick, maxClick, minOrder, maxOrder,
         linkedCampaigns,
-        amountSpent, ppn, metaClicks, cpr, ctr, keuntungan, roi, roas,
-        rateLinkShopee, rateShopeeOrder, results,
+        amountSpent, ppn, metaClicks, cpc, results, cpr, ctr, keuntungan, roi, roas,
+        rateLinkShopee, rateShopeeOrder,
         sources: d.sources
       };
     }).sort((a, b) => b.shopeeCommission - a.shopeeCommission || b.shopeeOrders - a.shopeeOrders);
@@ -1346,6 +1352,8 @@ export default function App() {
                         <th className="px-5 py-4 text-blue-600">Biaya Iklan (+{ppnPercentage}%)</th>
                         <th className="px-5 py-4 text-blue-600">Klik Meta</th>
                         <th className="px-5 py-4 text-blue-600">Avg CPC</th>
+                        <th className="px-5 py-4 text-blue-600">Hasil Meta</th>
+                        <th className="px-5 py-4 text-blue-600">CPR</th>
                         <th className="px-5 py-4 text-orange-600">Klik Shopee</th>
                         <th className="px-5 py-4 text-orange-600">Shopee Orders</th>
                         <th className="px-5 py-4 text-orange-600">GMV</th>
@@ -1359,7 +1367,8 @@ export default function App() {
                         const ppnMultiplier = 1 + (ppnPercentage / 100);
                         const mSpentWithPpn = day.mSpent * ppnMultiplier;
                         const estKeuntungan = day.sComm - mSpentWithPpn;
-                        const cpr = day.mResults > 0 ? mSpentWithPpn / day.mResults : (day.mClicks > 0 ? mSpentWithPpn / day.mClicks : 0);
+                        const cpc = day.mClicks > 0 ? day.mSpent / day.mClicks : 0;
+                        const cpr = day.mResults > 0 ? day.mSpent / day.mResults : 0;
                         
                         // --- PERUBAHAN RUMUS ROAS MODAL ---
                         const roas = mSpentWithPpn > 0 ? day.sComm / mSpentWithPpn : (day.sComm > 0 ? Infinity : 0);
@@ -1368,6 +1377,8 @@ export default function App() {
                           <tr key={i} className="hover:bg-[#f0f2f5] transition-colors">
                             <td className="px-5 py-3 font-bold border-r border-slate-200 text-slate-800">{formatShortDate(day.date)}</td>
                             <td className="px-5 py-3 bg-blue-50/50 text-slate-700 font-medium">{formatCurrency(mSpentWithPpn)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700">{formatNumber(day.mClicks)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-500">{formatCurrency(cpc)}</td>
                             <td className="px-5 py-3 bg-blue-50/50 text-slate-700">{formatNumber(day.mResults)}</td>
                             <td className="px-5 py-3 bg-blue-50/50 text-slate-500">{formatCurrency(cpr)}</td>
                             <td className="px-5 py-3 bg-orange-50/50 font-medium text-slate-700">{formatNumber(day.sClicks)}</td>
@@ -1388,12 +1399,20 @@ export default function App() {
                       <tr>
                         <td className="px-5 py-4 border-r border-slate-300 tracking-wider">TOTAL</td>
                         <td className="px-5 py-4 text-blue-700">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100)))}</td>
+                        <td className="px-5 py-4 text-blue-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.mClicks,0))}</td>
+                        <td className="px-5 py-4 text-slate-500">
+                          {formatCurrency(
+                            tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) > 0 
+                            ? tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) / tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) 
+                            : 0
+                          )}
+                        </td>
                         <td className="px-5 py-4 text-blue-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.mResults,0))}</td>
                         <td className="px-5 py-4 text-slate-500">
                           {formatCurrency(
-                            (tagDailyDetails.reduce((a,b)=>a+b.mResults,0) > 0) 
-                            ? (tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100))) / tagDailyDetails.reduce((a,b)=>a+b.mResults,0) 
-                            : (tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) > 0 ? (tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) * (1 + (ppnPercentage / 100))) / tagDailyDetails.reduce((a,b)=>a+b.mClicks,0) : 0)
+                            tagDailyDetails.reduce((a,b)=>a+b.mResults,0) > 0 
+                            ? tagDailyDetails.reduce((a,b)=>a+b.mSpent,0) / tagDailyDetails.reduce((a,b)=>a+b.mResults,0) 
+                            : 0
                           )}
                         </td>
                         <td className="px-5 py-4 text-orange-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sClicks,0))}</td>
@@ -1699,7 +1718,7 @@ export default function App() {
                       <p className="text-sm font-bold text-white/90">Klik Meta</p>
                       <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm"><Target size={18} /></div>
                     </div>
-                    <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.metaResults)}>{formatNumber(summaryData.metaResults)}</h3>
+                    <h3 className="text-xl xl:text-2xl font-black tracking-tight relative z-10 truncate" title={formatNumber(summaryData.metaClicks)}>{formatNumber(summaryData.metaClicks)}</h3>
                   </div>
 
                   {/* KPI CARD: Klik Shopee */}
@@ -2094,6 +2113,9 @@ export default function App() {
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Klik Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Avg CPC<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       
+                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">Hasil Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 sticky top-0 z-20">CPR Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
+                      
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-blue-500 border-r border-r-slate-200 sticky top-0 z-20">CTR Meta<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(dari Meta)</span></th>
                       
                       {/* KOLOM SHOPEE */}
@@ -2219,7 +2241,13 @@ export default function App() {
                             <td className={getTdClass(item.ppn, 'ppn', 'bg-blue-50/30')}>
                               <div className="font-bold text-[13px] text-blue-600">{formatCurrency(item.ppn)}</div>
                             </td>
-                            <td className={getTdClass(item.results, 'metaClicks', 'bg-blue-50/30')}>
+                            <td className={getTdClass(item.metaClicks, 'metaClicks', 'bg-blue-50/30')}>
+                              <div className="font-black text-slate-800 text-[13px]">{formatNumber(item.metaClicks)}</div>
+                            </td>
+                            <td className={getTdClass(item.cpc, 'cpc', 'bg-blue-50/30')}>
+                              <div className="font-bold text-slate-600 text-[13px]">{formatCurrency(item.cpc)}</div>
+                            </td>
+                            <td className={getTdClass(item.results, 'results', 'bg-blue-50/30')}>
                               <div className="font-black text-slate-800 text-[13px]">{formatNumber(item.results)}</div>
                             </td>
                             <td className={getTdClass(item.cpr, 'cpr', 'bg-blue-50/30')}>
@@ -2390,9 +2418,10 @@ export default function App() {
                 {statusData.data.map((st, i) => {
                   const pct = ((st.count / statusData.total) * 100).toFixed(1);
                   let colorClass = 'bg-blue-400';
-                  if (st.status.toLowerCase().includes('selesai') || st.status.toLowerCase().includes('completed')) colorClass = 'bg-[#00a884]';
-                  else if (st.status.toLowerCase().includes('tertunda') || st.status.toLowerCase().includes('pending')) colorClass = 'bg-amber-400';
-                  else if (st.status.toLowerCase().includes('batal') || st.status.toLowerCase().includes('gagal')) colorClass = 'bg-rose-500';
+                  const sLow = st.status.toLowerCase();
+                  if (sLow.includes('selesai') || sLow.includes('completed')) colorClass = 'bg-[#00a884]';
+                  else if (sLow.includes('tertunda') || sLow.includes('pending')) colorClass = 'bg-amber-400';
+                  else if (sLow.includes('batal') || sLow.includes('gagal') || sLow.includes('cancel') || sLow.includes('invalid')) colorClass = 'bg-rose-500';
 
                   return (
                     <div key={i} className="group">
