@@ -2067,7 +2067,7 @@ export default function App() {
                 onMouseLeave={onMouseLeave}
                 onMouseUp={onMouseUp}
                 onMouseMove={onMouseMove}
-                className={`overflow-x-auto select-none relative bg-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-50`}
+                className={`overflow-auto max-h-[85vh] select-none relative bg-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} z-10 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-50`}
               >
                 <table className="min-w-max w-full text-xs text-left border-collapse">
                   <thead className="font-bold">
