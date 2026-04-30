@@ -64,7 +64,7 @@ export default function App() {
   const [tagMappings, setTagMappings] = useState({});
   const [isSyncDate, setIsSyncDate] = useState(true);
   const [summaryDateFilter, setSummaryDateFilter] = useState('all');
-  const [ppnPercentage, setPpnPercentage] = useState(11); 
+  const [ppnPercentage, setPpnPercentage] = useState(5); 
   const [filterActiveCampaigns, setFilterActiveCampaigns] = useState(false);
   const [visibleTags, setVisibleTags] = useState([]);
   const [selectedTagToAdd, setSelectedTagToAdd] = useState('');
@@ -78,6 +78,7 @@ export default function App() {
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [showMetaWarning, setShowMetaWarning] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // Custom Error UI replacing alert()
 
   // --- DATA PANDUAN (TOUR) ---
   const tourStepsData = [
@@ -100,7 +101,7 @@ export default function App() {
       color: "from-teal-500 to-emerald-600"
     },
     {
-      title: "3. Analitik & Visualisasi",
+      title: "3. Analitik",
       desc: "Temukan 'Winning Campaign' Anda! Tab ini menyediakan grafik tren harian, daftar 10 Tag dengan komisi tertinggi, serta daftar produk dan kategori yang paling laris terjual.",
       icon: <PieChart className="w-24 h-24 text-white drop-shadow-xl" strokeWidth={1.5} />,
       color: "from-indigo-600 to-violet-700"
@@ -154,7 +155,6 @@ export default function App() {
       if (h === 'campaign delivery' || h.includes('penayangan') || h === 'status') return 'Campaign delivery';
       if (h.includes('amount spent') || h.includes('jumlah yang dibelanjakan')) return 'Amount spent (IDR)';
       
-      // --- PERBAIKAN: MAPPING KOLOM INDONESIA SECARA ROBUST UNTUK TAYANGAN, KLIK, DAN HASIL ---
       if (h.includes('link clicks') || h.includes('klik tautan') || h.includes('klik (semua)') || h === 'klik') return 'Link clicks';
       if (h.includes('results') || h === 'hasil') return 'Results';
       if (h.includes('impressions') || h.includes('impresi') || h.includes('tayangan')) return 'Impressions';
@@ -216,7 +216,7 @@ export default function App() {
         setTimeout(() => {
           try {
             if (!window.XLSX) {
-              alert("Modul pembaca Excel sedang dimuat, mohon coba unggah ulang dalam 3 detik.");
+              setErrorMessage("Modul pembaca Excel sedang dimuat, mohon coba unggah ulang dalam 3 detik.");
               setIsProcessing(false);
               return;
             }
@@ -230,12 +230,12 @@ export default function App() {
             processParsedRows(rows, callback);
           } catch (error) {
             console.error("Error parsing Excel:", error);
-            alert("Gagal membaca file Excel. Pastikan format file tidak rusak.");
+            setErrorMessage("Gagal membaca file Excel. Pastikan format file tidak rusak.");
             setIsProcessing(false);
           }
         }, 50);
       };
-      reader.onerror = () => { alert("Error internal membaca file Excel."); setIsProcessing(false); };
+      reader.onerror = () => { setErrorMessage("Error internal membaca file Excel."); setIsProcessing(false); };
       reader.readAsArrayBuffer(file);
     } 
     else if (ext === 'csv') {
@@ -302,15 +302,15 @@ export default function App() {
             processParsedRows(rows, callback);
           } catch (error) {
             console.error("Error parsing CSV:", error);
-            alert("Gagal membaca file CSV. Pastikan format file tidak rusak.");
+            setErrorMessage("Gagal membaca file CSV. Pastikan format file tidak rusak.");
             setIsProcessing(false);
           }
         }, 50);
       };
-      reader.onerror = () => { alert("Error internal membaca file CSV."); setIsProcessing(false); };
+      reader.onerror = () => { setErrorMessage("Error internal membaca file CSV."); setIsProcessing(false); };
       reader.readAsText(file);
     } else {
-       alert("Format file tidak didukung. Harap gunakan file berekstensi .csv atau .xlsx");
+       setErrorMessage("Format file tidak didukung. Harap gunakan file berekstensi .csv atau .xlsx");
        setIsProcessing(false);
     }
   };
@@ -748,7 +748,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
     });
 
@@ -757,7 +757,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
     });
 
@@ -770,7 +770,7 @@ export default function App() {
       tag = String(tag).replace(/-+$/, ''); 
       
       if (!tagsMap[tag]) {
-         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 } };
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
       
       tagsMap[tag].clicks += 1;
@@ -803,7 +803,7 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       
       if (!tagsMap[tag]) {
-         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [] };
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
       
       const orderId = row['ID Pemesanan'];
@@ -833,6 +833,23 @@ export default function App() {
 
       if (orderTime && commClickTime) {
         tagsMap[tag].timeDiffs.push(orderTime.getTime() - commClickTime.getTime());
+      }
+
+      let orderSourceStr = String(row['Sumber Traffic'] || '').toLowerCase();
+      if (!orderSourceStr) {
+          orderSourceStr = Object.values(row).join(' ').toLowerCase();
+      }
+
+      if (orderSourceStr.includes('facebook') || orderSourceStr.match(/\bfb\b/)) {
+          tagsMap[tag].orderSources.facebook += 1;
+      } else if (orderSourceStr.includes('instagram') || orderSourceStr.match(/\big\b/)) {
+          tagsMap[tag].orderSources.instagram += 1;
+      } else if (orderSourceStr.includes('shopee live') || orderSourceStr.includes('live')) {
+          tagsMap[tag].orderSources.shopee_live += 1;
+      } else if (orderSourceStr.includes('shopee video') || orderSourceStr.includes('video')) {
+          tagsMap[tag].orderSources.shopee_video += 1;
+      } else {
+          tagsMap[tag].orderSources.other += 1;
       }
     });
 
@@ -907,7 +924,8 @@ export default function App() {
         linkedCampaigns,
         amountSpent, ppn, metaClicks, cpr, ctr, keuntungan, roi, roas,
         rateLinkShopee, rateShopeeOrder, results,
-        sources: d.sources
+        sources: d.sources,
+        orderSources: d.orderSources
       };
     }).sort((a, b) => b.shopeeCommission - a.shopeeCommission || b.shopeeOrders - a.shopeeOrders);
   }, [shopeeClicks, processedCommissions, tagMappings, processedMetaAds, ppnPercentage, tagTableDateFilter]);
@@ -1231,6 +1249,27 @@ export default function App() {
         </div>
       )}
 
+      {/* ERROR MODAL PENGGANTI ALERT */}
+      {errorMessage && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col animate-in zoom-in-95 duration-300 p-8 text-center border border-slate-200">
+            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100 shadow-inner">
+              <AlertTriangle className="w-10 h-10 text-rose-500" />
+            </div>
+            <h2 className="text-xl font-black text-slate-800 mb-3">Pemberitahuan</h2>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              {errorMessage}
+            </p>
+            <button
+              onClick={() => setErrorMessage('')}
+              className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-slate-900/20 transition-transform hover:-translate-y-1"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ---------------- ONBOARDING TOUR COMPONENTS (MODAL BARU) ---------------- */}
       {showTour && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
@@ -1338,8 +1377,8 @@ export default function App() {
                   <p className="text-slate-500 font-medium">Belum ada data harian untuk tag ini.</p>
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                  <table className="min-w-full text-sm text-left">
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-x-auto shadow-sm">
+                  <table className="min-w-max w-full text-sm text-left">
                     <thead className="bg-[#f0f2f5] text-slate-700 font-semibold sticky top-0 border-b border-slate-200">
                       <tr>
                         <th className="px-5 py-4 border-r border-slate-200">Tanggal</th>
@@ -1350,6 +1389,8 @@ export default function App() {
                         <th className="px-5 py-4 text-orange-600">Shopee Orders</th>
                         <th className="px-5 py-4 text-orange-600">GMV</th>
                         <th className="px-5 py-4 text-orange-600">Komisi Shopee</th>
+                        <th className="px-5 py-4 text-teal-600">Ratio Klik</th>
+                        <th className="px-5 py-4 text-teal-600">Ratio Order</th>
                         <th className="px-5 py-4 text-[#00a884]">Keuntungan (Estimasi)</th>
                         <th className="px-5 py-4 text-[#00a884]">ROAS</th>
                       </tr>
@@ -1363,6 +1404,8 @@ export default function App() {
                         
                         // --- PERUBAHAN RUMUS ROAS MODAL ---
                         const roas = mSpentWithPpn > 0 ? day.sComm / mSpentWithPpn : (day.sComm > 0 ? Infinity : 0);
+                        const rateKlik = day.mResults > 0 ? (day.sClicks / day.mResults) * 100 : (day.sClicks > 0 ? Infinity : 0);
+                        const rateOrder = day.sClicks > 0 ? (day.sOrders / day.sClicks) * 100 : 0;
                         
                         return (
                           <tr key={i} className="hover:bg-[#f0f2f5] transition-colors">
@@ -1374,6 +1417,8 @@ export default function App() {
                             <td className="px-5 py-3 bg-orange-50/50 font-bold text-slate-900">{formatNumber(day.sOrders)}</td>
                             <td className="px-5 py-3 bg-orange-50/50 text-slate-700 font-bold">{formatCurrency(day.sGmv)}</td>
                             <td className="px-5 py-3 bg-orange-50/50 text-orange-600 font-bold">{formatCurrency(day.sComm)}</td>
+                            <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold">{rateKlik === Infinity ? '∞' : `${rateKlik.toFixed(2)}%`}</td>
+                            <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold">{rateOrder.toFixed(2)}%</td>
                             <td className={`px-5 py-3 font-bold bg-[#dcf8c6]/30 ${estKeuntungan >= 0 ? 'text-[#00a884]' : 'text-rose-600'}`}>
                               {formatCurrency(estKeuntungan)}
                             </td>
@@ -1400,6 +1445,22 @@ export default function App() {
                         <td className="px-5 py-4 text-orange-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sOrders,0))}</td>
                         <td className="px-5 py-4 text-orange-700">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sGmv,0))}</td>
                         <td className="px-5 py-4 text-orange-600">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sComm,0))}</td>
+                        <td className="px-5 py-4 text-teal-700">
+                          { (() => {
+                               const totalMClicks = tagDailyDetails.reduce((a,b)=>a+b.mResults,0);
+                               const totalSClicks = tagDailyDetails.reduce((a,b)=>a+b.sClicks,0);
+                               const totalRateKlik = totalMClicks > 0 ? (totalSClicks / totalMClicks) * 100 : (totalSClicks > 0 ? Infinity : 0);
+                               return totalRateKlik === Infinity ? '∞' : `${totalRateKlik.toFixed(2)}%`;
+                            })() }
+                        </td>
+                        <td className="px-5 py-4 text-teal-700">
+                          { (() => {
+                               const totalSClicks = tagDailyDetails.reduce((a,b)=>a+b.sClicks,0);
+                               const totalSOrders = tagDailyDetails.reduce((a,b)=>a+b.sOrders,0);
+                               const totalRateOrder = totalSClicks > 0 ? (totalSOrders / totalSClicks) * 100 : 0;
+                               return `${totalRateOrder.toFixed(2)}%`;
+                            })() }
+                        </td>
                         <td className="px-5 py-4 text-[#00a884]">
                           {formatCurrency(tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0))}
                         </td>
@@ -1628,7 +1689,7 @@ export default function App() {
             className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl sm:rounded-full text-sm font-black transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'charts' ? 'bg-[#00a884] text-white shadow-md shadow-[#00a884]/30 scale-[1.02] sm:scale-105' : 'text-slate-500 hover:text-slate-800 hover:bg-[#f0f2f5]'}`}
           >
             <LineChart size={18} className={activeTab === 'charts' ? 'text-white' : 'opacity-70'} /> 
-            <span className="whitespace-nowrap">Analitik & Visual</span>
+            <span className="whitespace-nowrap">Analitik</span>
           </button>
         </div>
 
@@ -2112,13 +2173,14 @@ export default function App() {
                       <th className="px-3 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-emerald-500 border-r border-r-slate-200 sticky top-0 z-20">ROAS<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Return On Ads Spend)</span></th>
                       
                       <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-indigo-500 sticky top-0 z-20 min-w-[140px]">Sumber Klik<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Facebook, IG, dll)</span></th>
+                      <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-violet-500 sticky top-0 z-20 min-w-[150px]">Sumber Orderan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(FB, IG, Live, Vid, dll)</span></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white relative z-0">
                     
                     {displayedTagsInTable.length === 0 ? (
                       <tr>
-                        <td colSpan="15" className="px-4 py-32 text-center">
+                        <td colSpan="16" className="px-4 py-32 text-center">
                           <div className="flex flex-col items-center justify-center text-slate-400">
                             <LayoutList size={56} className="mb-5 opacity-40 text-[#00a884]" />
                             <h3 className="text-xl font-black text-slate-700 mb-2 tracking-tight">Data Tabel Kosong</h3>
@@ -2324,6 +2386,81 @@ export default function App() {
                                       {item.sources.other > 0 && (
                                         <div className="flex items-center justify-between text-[10px]">
                                           <span className="font-bold text-slate-500 w-5">Oth</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-slate-400 h-full rounded-full" style={{ width: `${othPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{othPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )
+                                })()}
+                              </div>
+                            </td>
+
+                            <td className={getTdClass(null, 'orderSources', 'bg-violet-50/30')}>
+                              <div className="flex flex-col gap-1.5 w-full">
+                                {(() => {
+                                  const total = item.orderSources.facebook + item.orderSources.instagram + item.orderSources.shopee_live + item.orderSources.shopee_video + item.orderSources.other;
+                                  if (total === 0) return <span className="text-[10px] text-slate-400 font-medium italic">Data sumber tidak tersedia</span>;
+                                  
+                                  const fbPct = ((item.orderSources.facebook / total) * 100).toFixed(0);
+                                  const igPct = ((item.orderSources.instagram / total) * 100).toFixed(0);
+                                  const livePct = ((item.orderSources.shopee_live / total) * 100).toFixed(0);
+                                  const vidPct = ((item.orderSources.shopee_video / total) * 100).toFixed(0);
+                                  const othPct = ((item.orderSources.other / total) * 100).toFixed(0);
+
+                                  return (
+                                    <>
+                                      {item.orderSources.facebook > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-blue-600 w-7">FB</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-blue-500 h-full rounded-full" style={{ width: `${fbPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{fbPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.orderSources.instagram > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-pink-600 w-7">IG</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full" style={{ width: `${igPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{igPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.orderSources.shopee_live > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-orange-600 w-7">Live</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-orange-500 h-full rounded-full" style={{ width: `${livePct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{livePct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.orderSources.shopee_video > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-emerald-600 w-7">Vid</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${vidPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{vidPct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.orderSources.other > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-slate-500 w-7">Oth</span>
                                           <div className="flex items-center gap-1.5 w-full ml-1.5">
                                             <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
                                               <div className="bg-slate-400 h-full rounded-full" style={{ width: `${othPct}%` }}></div>
