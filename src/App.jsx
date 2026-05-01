@@ -1209,7 +1209,7 @@ export default function App() {
 
   // --- LOGIC GET WARNA TABEL (LIGHT MODE ADAPTED) ---
   const getTdClass = (value, type, baseBg) => {
-    return `px-3 py-3 align-middle transition-colors border-r border-b border-slate-200 ${baseBg}`;
+    return `px-3 py-3 align-middle transition-colors border-r border-b border-slate-200 ${baseBg} group-hover:bg-blue-50`;
   };
 
   // --- LOGIC DRAG TO SCROLL TABEL ---
@@ -1420,21 +1420,21 @@ export default function App() {
                         }
                         
                         return (
-                          <tr key={i} className="hover:bg-[#f0f2f5] transition-colors">
-                            <td className="px-5 py-3 font-bold border-r border-slate-200 text-slate-800">{formatShortDate(day.date)}</td>
-                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700 font-medium">{formatCurrency(mSpentWithPpn)}</td>
-                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700">{formatNumber(day.mResults)}</td>
-                            <td className="px-5 py-3 bg-blue-50/50 text-slate-500">{formatCurrency(cpr)}</td>
-                            <td className="px-5 py-3 bg-orange-50/50 font-medium text-slate-700">{formatNumber(day.sClicks)}</td>
-                            <td className="px-5 py-3 bg-orange-50/50 font-bold text-slate-900">{formatNumber(day.sOrders)}</td>
-                            <td className="px-5 py-3 bg-orange-50/50 text-slate-700 font-bold">{formatCurrency(day.sGmv)}</td>
-                            <td className="px-5 py-3 bg-orange-50/50 text-orange-600 font-bold">{formatCurrency(day.sComm)}</td>
-                            <td className={`px-5 py-3 bg-teal-50/30 font-bold ${rateColorClass}`}>{rateKlik === Infinity ? '∞' : `${rateKlik.toFixed(2)}%`}</td>
-                            <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold">{rateOrder.toFixed(2)}%</td>
-                            <td className={`px-5 py-3 font-bold bg-[#dcf8c6]/30 ${estKeuntungan >= 0 ? 'text-[#00a884]' : 'text-rose-600'}`}>
+                          <tr key={i} className="group hover:bg-blue-50 transition-colors">
+                            <td className="px-5 py-3 font-bold border-r border-slate-200 text-slate-800 group-hover:bg-blue-50">{formatShortDate(day.date)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700 font-medium group-hover:bg-blue-50">{formatCurrency(mSpentWithPpn)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-700 group-hover:bg-blue-50">{formatNumber(day.mResults)}</td>
+                            <td className="px-5 py-3 bg-blue-50/50 text-slate-500 group-hover:bg-blue-50">{formatCurrency(cpr)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 font-medium text-slate-700 group-hover:bg-blue-50">{formatNumber(day.sClicks)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 font-bold text-slate-900 group-hover:bg-blue-50">{formatNumber(day.sOrders)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 text-slate-700 font-bold group-hover:bg-blue-50">{formatCurrency(day.sGmv)}</td>
+                            <td className="px-5 py-3 bg-orange-50/50 text-orange-600 font-bold group-hover:bg-blue-50">{formatCurrency(day.sComm)}</td>
+                            <td className={`px-5 py-3 bg-teal-50/30 font-bold ${rateColorClass} group-hover:bg-blue-50`}>{rateKlik === Infinity ? '∞' : `${rateKlik.toFixed(2)}%`}</td>
+                            <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold group-hover:bg-blue-50">{rateOrder.toFixed(2)}%</td>
+                            <td className={`px-5 py-3 font-bold bg-[#dcf8c6]/30 group-hover:bg-blue-50 ${estKeuntungan >= 0 ? 'text-[#00a884]' : 'text-rose-600'}`}>
                               {estKeuntungan < 0 && '- '}{formatCurrency(Math.abs(estKeuntungan))}
                             </td>
-                            <td className="px-5 py-3 font-bold bg-[#dcf8c6]/30 text-[#00a884]">
+                            <td className="px-5 py-3 font-bold bg-[#dcf8c6]/30 text-[#00a884] group-hover:bg-blue-50">
                               {roas === Infinity ? '∞' : `${roas.toFixed(2)}x`}
                             </td>
                           </tr>
@@ -2241,10 +2241,10 @@ export default function App() {
                         }
 
                         return (
-                          <tr key={idx} className="group transition-colors relative z-0 hover:bg-[#f0f2f5]/50">
+                          <tr key={idx} className="group transition-colors relative z-0 hover:bg-blue-50">
                             
                             {/* TD PERTAMA (Sticky kiri) */}
-                            <td className="px-4 py-3.5 align-middle border-r border-slate-200 bg-white sticky left-0 z-10 group-hover:bg-[#f0f2f5]/80 shadow-[1px_0_0_0_#e2e8f0]">
+                            <td className="px-4 py-3.5 align-middle border-r border-slate-200 bg-white sticky left-0 z-10 group-hover:bg-blue-50 shadow-[1px_0_0_0_#e2e8f0]">
                               
                               <div className="flex justify-between items-start mb-2">
                                 <button 
