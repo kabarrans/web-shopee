@@ -748,7 +748,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
     });
 
@@ -757,7 +757,7 @@ export default function App() {
       if (tag === undefined || tag === null) return;
       tag = String(tag).replace(/-+$/, '');
       if (!tagsMap[tag]) {
-        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
+        tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
     });
 
@@ -770,7 +770,7 @@ export default function App() {
       tag = String(tag).replace(/-+$/, ''); 
       
       if (!tagsMap[tag]) {
-         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
       
       tagsMap[tag].clicks += 1;
@@ -784,8 +784,10 @@ export default function App() {
           tagsMap[tag].sources.facebook += 1;
       } else if (sourceStr.includes('instagram') || sourceStr.match(/\big\b/)) {
           tagsMap[tag].sources.instagram += 1;
-      } else if (sourceStr.includes('threads')) {
-          tagsMap[tag].sources.threads += 1;
+      } else if (sourceStr.includes('shopee live') || sourceStr.includes('live')) {
+          tagsMap[tag].sources.shopee_live += 1;
+      } else if (sourceStr.includes('shopee video') || sourceStr.includes('video')) {
+          tagsMap[tag].sources.shopee_video += 1;
       } else {
           tagsMap[tag].sources.other += 1;
       }
@@ -803,7 +805,7 @@ export default function App() {
       tag = String(tag).replace(/-+$/, '');
       
       if (!tagsMap[tag]) {
-         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, threads: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
+         tagsMap[tag] = { clicks: 0, commission: 0, gmv: 0, orderIdsSet: new Set(), addedOrdersComm: {}, commissionsArr: [], timeDiffs: [], clickTimes: [], orderTimes: [], sources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 }, orderSources: { facebook: 0, instagram: 0, shopee_live: 0, shopee_video: 0, other: 0 } };
       }
       
       const orderId = row['ID Pemesanan'];
@@ -1407,6 +1409,16 @@ export default function App() {
                         const rateKlik = day.mResults > 0 ? (day.sClicks / day.mResults) * 100 : (day.sClicks > 0 ? Infinity : 0);
                         const rateOrder = day.sClicks > 0 ? (day.sOrders / day.sClicks) * 100 : 0;
                         
+                        // LOGIKA WARNA RATIO KLIK MODAL
+                        let rateColorClass = "text-slate-700";
+                        if (rateKlik === Infinity || rateKlik >= 80) {
+                          rateColorClass = "text-[#00a884]";
+                        } else if (rateKlik >= 65) {
+                          rateColorClass = "text-amber-600";
+                        } else {
+                          rateColorClass = "text-rose-600";
+                        }
+                        
                         return (
                           <tr key={i} className="hover:bg-[#f0f2f5] transition-colors">
                             <td className="px-5 py-3 font-bold border-r border-slate-200 text-slate-800">{formatShortDate(day.date)}</td>
@@ -1417,10 +1429,10 @@ export default function App() {
                             <td className="px-5 py-3 bg-orange-50/50 font-bold text-slate-900">{formatNumber(day.sOrders)}</td>
                             <td className="px-5 py-3 bg-orange-50/50 text-slate-700 font-bold">{formatCurrency(day.sGmv)}</td>
                             <td className="px-5 py-3 bg-orange-50/50 text-orange-600 font-bold">{formatCurrency(day.sComm)}</td>
-                            <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold">{rateKlik === Infinity ? '∞' : `${rateKlik.toFixed(2)}%`}</td>
+                            <td className={`px-5 py-3 bg-teal-50/30 font-bold ${rateColorClass}`}>{rateKlik === Infinity ? '∞' : `${rateKlik.toFixed(2)}%`}</td>
                             <td className="px-5 py-3 bg-teal-50/30 text-teal-700 font-bold">{rateOrder.toFixed(2)}%</td>
                             <td className={`px-5 py-3 font-bold bg-[#dcf8c6]/30 ${estKeuntungan >= 0 ? 'text-[#00a884]' : 'text-rose-600'}`}>
-                              {formatCurrency(estKeuntungan)}
+                              {estKeuntungan < 0 && '- '}{formatCurrency(Math.abs(estKeuntungan))}
                             </td>
                             <td className="px-5 py-3 font-bold bg-[#dcf8c6]/30 text-[#00a884]">
                               {roas === Infinity ? '∞' : `${roas.toFixed(2)}x`}
@@ -1445,12 +1457,19 @@ export default function App() {
                         <td className="px-5 py-4 text-orange-700">{formatNumber(tagDailyDetails.reduce((a,b)=>a+b.sOrders,0))}</td>
                         <td className="px-5 py-4 text-orange-700">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sGmv,0))}</td>
                         <td className="px-5 py-4 text-orange-600">{formatCurrency(tagDailyDetails.reduce((a,b)=>a+b.sComm,0))}</td>
-                        <td className="px-5 py-4 text-teal-700">
+                        <td className="px-5 py-4">
                           { (() => {
                                const totalMClicks = tagDailyDetails.reduce((a,b)=>a+b.mResults,0);
                                const totalSClicks = tagDailyDetails.reduce((a,b)=>a+b.sClicks,0);
                                const totalRateKlik = totalMClicks > 0 ? (totalSClicks / totalMClicks) * 100 : (totalSClicks > 0 ? Infinity : 0);
-                               return totalRateKlik === Infinity ? '∞' : `${totalRateKlik.toFixed(2)}%`;
+                               
+                               let tRateColor = "text-slate-700";
+                               if (totalRateKlik === Infinity || totalRateKlik >= 80) tRateColor = "text-[#00a884]";
+                               else if (totalRateKlik >= 65) tRateColor = "text-amber-600";
+                               else tRateColor = "text-rose-600";
+                               
+                               const valStr = totalRateKlik === Infinity ? '∞' : `${totalRateKlik.toFixed(2)}%`;
+                               return <span className={tRateColor}>{valStr}</span>;
                             })() }
                         </td>
                         <td className="px-5 py-4 text-teal-700">
@@ -1460,6 +1479,16 @@ export default function App() {
                                const totalRateOrder = totalSClicks > 0 ? (totalSOrders / totalSClicks) * 100 : 0;
                                return `${totalRateOrder.toFixed(2)}%`;
                             })() }
+                        </td>
+                        <td className="px-5 py-4">
+                          { (() => {
+                              const totalKeuntungan = tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0);
+                              return (
+                                 <span className={totalKeuntungan >= 0 ? 'text-[#00a884]' : 'text-rose-600'}>
+                                   {totalKeuntungan < 0 && '- '}{formatCurrency(Math.abs(totalKeuntungan))}
+                                 </span>
+                              )
+                          })() }
                         </td>
                         <td className="px-5 py-4 text-[#00a884]">
                           {formatCurrency(tagDailyDetails.reduce((a,b) => a + (b.sComm - (b.mSpent * (1 + (ppnPercentage / 100)))), 0))}
@@ -2174,6 +2203,7 @@ export default function App() {
                       
                       <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-indigo-500 sticky top-0 z-20 min-w-[140px]">Sumber Klik<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Facebook, IG, dll)</span></th>
                       <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-violet-500 sticky top-0 z-20 min-w-[150px]">Sumber Orderan<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(FB, IG, Live, Vid, dll)</span></th>
+                      <th className="px-4 py-3 bg-[#f0f2f5] text-slate-700 border-b-[3px] border-b-fuchsia-500 sticky top-0 z-20 min-w-[140px]">Keberhasilan Order<br/><span className="text-[10px] font-medium text-slate-400 block mt-0.5">(Order / Klik per Sumber)</span></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white relative z-0">
@@ -2340,12 +2370,13 @@ export default function App() {
                             <td className={getTdClass(null, 'sources', 'bg-indigo-50/30')}>
                               <div className="flex flex-col gap-1.5 w-full">
                                 {(() => {
-                                  const total = item.sources.facebook + item.sources.instagram + item.sources.threads + item.sources.other;
+                                  const total = item.sources.facebook + item.sources.instagram + item.sources.shopee_live + item.sources.shopee_video + item.sources.other;
                                   if (total === 0) return <span className="text-[10px] text-slate-400 font-medium italic">Data sumber tidak tersedia</span>;
                                   
                                   const fbPct = ((item.sources.facebook / total) * 100).toFixed(0);
                                   const igPct = ((item.sources.instagram / total) * 100).toFixed(0);
-                                  const thPct = ((item.sources.threads / total) * 100).toFixed(0);
+                                  const livePct = ((item.sources.shopee_live / total) * 100).toFixed(0);
+                                  const vidPct = ((item.sources.shopee_video / total) * 100).toFixed(0);
                                   const othPct = ((item.sources.other / total) * 100).toFixed(0);
 
                                   return (
@@ -2372,14 +2403,25 @@ export default function App() {
                                           </div>
                                         </div>
                                       )}
-                                      {item.sources.threads > 0 && (
+                                      {item.sources.shopee_live > 0 && (
                                         <div className="flex items-center justify-between text-[10px]">
-                                          <span className="font-bold text-slate-800 w-5">TH</span>
+                                          <span className="font-bold text-orange-600 w-5">Live</span>
                                           <div className="flex items-center gap-1.5 w-full ml-1.5">
                                             <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
-                                              <div className="bg-slate-800 h-full rounded-full" style={{ width: `${thPct}%` }}></div>
+                                              <div className="bg-orange-500 h-full rounded-full" style={{ width: `${livePct}%` }}></div>
                                             </div>
-                                            <span className="font-black text-slate-600 w-7 text-right">{thPct}%</span>
+                                            <span className="font-black text-slate-600 w-7 text-right">{livePct}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {item.sources.shopee_video > 0 && (
+                                        <div className="flex items-center justify-between text-[10px]">
+                                          <span className="font-bold text-emerald-600 w-5">Vid</span>
+                                          <div className="flex items-center gap-1.5 w-full ml-1.5">
+                                            <div className="flex-1 bg-white rounded-full h-1.5 overflow-hidden border border-slate-200 shadow-inner">
+                                              <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${vidPct}%` }}></div>
+                                            </div>
+                                            <span className="font-black text-slate-600 w-7 text-right">{vidPct}%</span>
                                           </div>
                                         </div>
                                       )}
@@ -2400,7 +2442,7 @@ export default function App() {
                               </div>
                             </td>
 
-                            <td className={getTdClass(null, 'orderSources', 'bg-violet-50/30')}>
+                            <td className={getTdClass(null, 'orderSources', 'bg-violet-50/30 border-r border-slate-200')}>
                               <div className="flex flex-col gap-1.5 w-full">
                                 {(() => {
                                   const total = item.orderSources.facebook + item.orderSources.instagram + item.orderSources.shopee_live + item.orderSources.shopee_video + item.orderSources.other;
@@ -2469,6 +2511,40 @@ export default function App() {
                                           </div>
                                         </div>
                                       )}
+                                    </>
+                                  )
+                                })()}
+                              </div>
+                            </td>
+
+                            <td className={getTdClass(null, 'orderSuccess', 'bg-fuchsia-50/30')}>
+                              <div className="flex flex-col gap-1.5 w-full">
+                                {(() => {
+                                  const s = item.sources;
+                                  const o = item.orderSources;
+                                  const hasAny = (s.facebook > 0 || o.facebook > 0) || (s.instagram > 0 || o.instagram > 0) || (s.shopee_live > 0 || o.shopee_live > 0) || (s.shopee_video > 0 || o.shopee_video > 0) || (s.other > 0 || o.other > 0);
+                                  
+                                  if (!hasAny) return <span className="text-[10px] text-slate-400 font-medium italic">Data tidak tersedia</span>;
+
+                                  const renderRate = (label, clicks, orders, colorClass) => {
+                                     if (clicks === 0 && orders === 0) return null;
+                                     const rate = clicks > 0 ? ((orders / clicks) * 100).toFixed(0) : '∞';
+                                     
+                                     return (
+                                       <div className="flex items-center justify-between text-[10px]">
+                                         <span className={`font-bold w-7 ${colorClass}`}>{label}</span>
+                                         <span className="font-black text-slate-700 bg-white/60 px-2 py-0.5 rounded-md border border-slate-200/60 shadow-sm">{rate}%</span>
+                                       </div>
+                                     )
+                                  }
+
+                                  return (
+                                    <>
+                                      {renderRate('FB', s.facebook, o.facebook, 'text-blue-600')}
+                                      {renderRate('IG', s.instagram, o.instagram, 'text-pink-600')}
+                                      {renderRate('Live', s.shopee_live, o.shopee_live, 'text-orange-600')}
+                                      {renderRate('Vid', s.shopee_video, o.shopee_video, 'text-emerald-600')}
+                                      {renderRate('Oth', s.other, o.other, 'text-slate-500')}
                                     </>
                                   )
                                 })()}
